@@ -184,13 +184,16 @@ const KPOP = [
 ["Super Junior-D&E","Oppa, Oppa",2011,"b"],["Super Junior-D&E","Growing Pains",2015,"b"],
 ["2PM","Take Off",2011,"b"],["2PM","Beautiful",2012,"b"],["FT Island","Flower Rock",2010,"b"],
 ["BEAST","Mystery",2009,"b"],["BEAST","How To Love",2010,"b"],["BEAST","On Rainy Days",2011,"b"],["BEAST","Midnight",2012,"b"],
-["B.A.P","Where Are You? What Are You Doing?",2014,"b"],
+["B.A.P","Where Are You? What Are You Doing?",2014,"b"],["DAY6","Congratulations",2015,"b"],
 // favourites outside 2008–2015 (favourites deck only)
 ["Super Junior","Twins (Knife)",2005,"x"],["Super Junior","Miracle",2005,"x"],["Super Junior","U",2006,"x"],["Super Junior","Don't Don",2007,"x"],["Super Junior","Marry U",2007,"x"],
 ["Super Junior","Black Suit",2017,"x"],["Super Junior","Lo Siento",2018,"x"],["Super Junior","One More Time (Otra Vez)",2018,"x"],["Super Junior","SUPER Clap",2019,"x"],["Super Junior","House Party",2021,"x"],["Super Junior","Mango",2022,"x"],
 ["Super Junior-T","Rokkugo!!!",2007,"x"],["Yesung","Here I Am",2016,"x"],["Ryeowook","The Little Prince",2016,"x"],
 ["2PM","Promise (I'll Be)",2016,"x"],["2PM","Make It",2021,"x"],["FT Island","Love Sick",2007,"x"],
 ["Highlight","Plz Don't Be Sad",2017,"x"],["Highlight","Calling You",2017,"x"],["B1A4","Good Timing",2016,"x"],
+["DAY6","Letting Go",2016,"x"],["DAY6","I Wait",2017,"x"],["DAY6","You Were Beautiful",2017,"x"],["DAY6","Dance Dance",2017,"x"],
+["DAY6","Shoot Me",2018,"x"],["DAY6","Days Gone By",2018,"x"],["DAY6","Sweet Chaos",2019,"x"],["DAY6","Time of Our Life",2019,"x"],["DAY6","Zombie",2020,"x"],
+["DAY6","Welcome to the Show",2024,"x"],["DAY6","HAPPY",2024,"x"],["DAY6","Melt Down",2024,"x"],
 ["B.A.P","Skydive",2016,"x"],["B.A.P","Wake Me Up",2017,"x"],["B.A.P","Honeymoon",2017,"x"],
 // girl groups
 ["Wonder Girls","Nobody",2008,"g"],["Wonder Girls","So Hot",2008,"g"],["Wonder Girls","2 Different Tears",2010,"g"],["Wonder Girls","Be My Baby",2011,"g"],["Wonder Girls","Like This",2012,"g"],["Wonder Girls","I Feel You",2015,"g"],
@@ -223,7 +226,7 @@ const KPOP = [
 ["Kyuhyun","At Gwanghwamun",2014,"s"],["Kyuhyun","A Million Pieces",2015,"s"],["Henry","Trap",2013,"s"],["Jang Wooyoung","Sexy Lady",2012,"s"],
 ["Lee Hongki","Insensible",2015,"s"],["Yang Yoseob","Caffeine",2012,"s"],["Trouble Maker","Trouble Maker",2011,"s"],["Trouble Maker","Now",2013,"s"]
 ];
-const FAVS = ["B.A.P","2PM","FT Island","BEAST","B1A4","Super Junior",
+const FAVS = ["B.A.P","2PM","FT Island","BEAST","B1A4","Super Junior","DAY6",
   "Super Junior-H","Super Junior-M","Super Junior-T","Super Junior-D&E","Kyuhyun","Yesung","Ryeowook","Henry",
   "Jang Wooyoung","Lee Hongki","Highlight","Yang Yoseob","Trouble Maker"];
 
@@ -421,7 +424,7 @@ const CATS = [
   {id:"boys",  name:"להקות בנים",   range:"2008–2015", icon:"🕺", color:"#7FE0F2", songs:kp.filter(x=>x.t==="b")},
   {id:"girls", name:"להקות בנות",   range:"2008–2015", icon:"💃", color:"#FF8FB8", songs:kp.filter(x=>x.t==="g")},
   {id:"mixed", name:"מעורבב",       range:"2008–2015", icon:"🎤", color:"#FFC93C", songs:kp.filter(x=>x.t!=="x")},
-  {id:"eden",  name:"האהובות של עדן", range:"B.A.P · 2PM · FT Island · BEAST · B1A4 · Super Junior, כל השנים", icon:"💜", color:"#C3A6FF", songs:kp.filter(x=>FAVS.includes(x.a))},
+  {id:"eden",  name:"האהובות של עדן", range:"B.A.P · 2PM · FT Island · BEAST · B1A4 · Super Junior · DAY6, כל השנים", icon:"💜", color:"#C3A6FF", songs:kp.filter(x=>FAVS.includes(x.a))},
   {id:"anime", name:"פתיחות וסיומים של אנימה", range:"כל הזמנים", icon:"🌸", color:"#9BE88E", songs:ANIME.map(([a,s,y,x])=>({a,s,y,x}))},
   {id:"shonen", name:"אנימה שונן", range:"2015 עד היום", icon:"🔥", color:"#FF9A5C", songs:SHONEN.map(([a,s,y,x])=>({a,s,y,x}))},
   {id:"disney", name:"דיסני", range:"סרטים מצוירים וכוכבי דיסני", icon:"🏰", color:"#7FE0F2", songs:DISNEY.map(([a,s,y,x])=>({a,s,y,x}))}
