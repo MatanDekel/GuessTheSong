@@ -112,6 +112,12 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offse
 .tools{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 16px}
 .link{background:none;border:0;color:var(--muted);font:500 .9rem "Rubik",sans-serif;text-decoration:underline;cursor:pointer;padding:6px}
 .copied{color:var(--pink)}
+.spbar{display:none}
+body.on-menu .spbar{display:block}
+.spbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:transparent;color:var(--ink);border:2px solid #1DB954;border-radius:999px;padding:13px 16px;font:700 1rem "Rubik",sans-serif;cursor:pointer}
+.spbtn svg{width:24px;height:24px;flex:none}
+.spon{margin:0;text-align:center;color:var(--muted);font-weight:500;font-size:.95rem}
+.spon .link{font-size:.9rem}
 .status{color:var(--ink);font-weight:500}
 #spConnect{color:var(--ink);font-weight:700}
 #clip{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
@@ -127,6 +133,13 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offse
   <div class="count" id="count"></div>
 </header>
 <main>
+  <div class="spbar" id="spBar">
+    <button class="spbtn" id="spConnect2">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.5 9.2c3.6-1.1 7.6-.8 11 1M7.2 12.3c3-.9 6.3-.6 9.1.9M7.9 15.2c2.4-.6 4.9-.4 7.1.7" stroke="#0B2414" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+      התחבר לספוטיפיי לניגון ברקע
+    </button>
+    <p class="spon" id="spOn" hidden>✓ מחובר לספוטיפיי, השירים יתנגנו ברקע <button class="link" id="spLogout2">התנתק</button></p>
+  </div>
   <section class="menu" id="menu"></section>
 
   <section id="game" hidden style="display:flex;flex-direction:column;gap:16px">
@@ -684,10 +697,11 @@ async function spPause(){
 function spStatus(msg,showLink){const el=$("spStatus");el.textContent=msg||"";el.hidden=!msg;$("spFallback").hidden=!showLink}
 function spUI(){
   const on=!!spTok();
-  $("spConnect").hidden=on;$("spLogout").hidden=!on;$("copy").hidden=on;$("spCheck").hidden=!on;
+  $("spConnect").hidden=on;$("spConnect2").hidden=on;$("spOn").hidden=!on;$("spLogout").hidden=!on;$("copy").hidden=on;$("spCheck").hidden=!on;
   $("playLabel").textContent=on?(card.classList.contains("playing")?"עצור":"נגן"):"נגן בספוטיפיי";
 }
-$("spConnect").onclick=spLogin;
+$("spConnect").onclick=spLogin;$("spConnect2").onclick=spLogin;
+$("spLogout2").onclick=()=>{ls.del("sp-token");spStatus("");spUI()};
 $("spCheck").onclick=spCheckAll;
 $("checkCopy").onclick=async()=>{const v=$("checkOut").value;try{await navigator.clipboard.writeText(v)}catch(e){$("checkOut").select();document.execCommand("copy")}$("checkCopy").textContent="הועתק"};
 $("spLogout").onclick=()=>{ls.del("sp-token");spStatus("");spUI()};
