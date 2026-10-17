@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guess The Song · היטסטר</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2ECFB; --ink:#1E1030; --muted:#6B5A82; --surface:#FFFFFF; --line:#DCD0EE;
+  --pink:#FF2E88; --cyan:#12B5D9; --yellow:#FFC93C; --btn:#1E1030; --btn-ink:#FFFFFF;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1A0B26; --ink:#F6EEFF; --muted:#B9A6D2; --surface:#2A1640; --line:#3E2758;
+    --btn:#F6EEFF; --btn-ink:#1A0B26; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1A0B26; --ink:#F6EEFF; --muted:#B9A6D2; --surface:#2A1640; --line:#3E2758;
+  --btn:#F6EEFF; --btn-ink:#1A0B26; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+  -webkit-tap-highlight-color:transparent;
+}
+header{width:100%;max-width:440px;padding:18px 20px 6px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+h1{font-family:"Secular One","Rubik",sans-serif;font-weight:400;font-size:1.6rem;line-height:1.1;margin:0}
+h1 small{display:block;font-family:"Rubik",sans-serif;font-size:.85rem;color:var(--muted);font-weight:500;margin-top:2px}
+.count{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500;white-space:nowrap}
+main{width:100%;max-width:440px;padding:10px 20px 20px;flex:1;display:flex;flex-direction:column;gap:16px}
+[hidden]{display:none!important}
+
+/* category menu */
+.menu{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.cat{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:start;
+  background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:22px;
+  padding:18px 20px;font:inherit;cursor:pointer;
+}
+.cat:active{transform:scale(.98)}
+.cat b{display:block;font-family:"Secular One","Rubik",sans-serif;font-weight:400;font-size:1.3rem;line-height:1.2}
+.cat span{display:block;color:var(--muted);font-size:.9rem;margin-top:3px;line-height:1.4}
+.cat i{font-style:normal;flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;background:var(--c)}
+.cat em{font-style:normal;color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.stage{perspective:1400px;touch-action:pan-y;user-select:none}
+.card{
+  position:relative;width:100%;aspect-ratio:3/4;max-height:58vh;margin-inline:auto;
+  transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.8,.2,1);cursor:pointer;
+}
+.card.flipped{transform:rotateY(180deg)}
+.card.swipe-out-next{transition:transform .25s ease-in,opacity .25s;transform:translateX(-120%) rotate(-8deg);opacity:0}
+.card.swipe-out-prev{transition:transform .25s ease-in,opacity .25s;transform:translateX(120%) rotate(8deg);opacity:0}
+.face{
+  position:absolute;inset:0;border-radius:28px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;overflow:hidden;
+}
+.front{background:var(--surface);border:2px solid var(--line)}
+.disc{
+  width:62%;aspect-ratio:1;border-radius:50%;position:relative;
+  background:
+    radial-gradient(circle,var(--surface) 0 12%,transparent 12.5%),
+    radial-gradient(circle,var(--disc,var(--pink)) 0 30%,transparent 30.5%),
+    repeating-radial-gradient(circle,#2a1a3c 0 2px,#3b2752 2px 4px);
+  box-shadow:0 0 0 6px var(--yellow),0 0 0 12px var(--cyan);
+}
+.playing .disc{animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.front p{color:var(--muted);margin:26px 0 0;font-size:.95rem;line-height:1.5;max-width:26ch}
+
+.back{transform:rotateY(180deg);color:#1E1030;background:var(--yr,#FFC93C)}
+.back .year{font-family:"Secular One","Rubik",sans-serif;font-size:clamp(5rem,30vw,8.5rem);line-height:.9;letter-spacing:-.02em}
+.back .artist{font-weight:700;font-size:1.4rem;margin-top:22px;line-height:1.2}
+.back .song{font-size:1.15rem;margin-top:8px;line-height:1.3}
+.back .extra{font-size:.95rem;margin-top:10px;line-height:1.3;opacity:.75}
+
+.play{
+  display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  background:#1DB954;color:#0B2414;border:0;border-radius:999px;padding:16px 20px;
+  font:700 1.1rem "Rubik",sans-serif;cursor:pointer;text-decoration:none;
+}
+.play svg{width:22px;height:22px}
+.row{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:10px}
+.btn{
+  border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:16px;
+  padding:13px 8px;font:500 1rem "Rubik",sans-serif;cursor:pointer;
+}
+.btn.solid{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.btn:disabled{opacity:.35;cursor:default}
+button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.hint{color:var(--muted);font-size:.85rem;text-align:center;margin:0;line-height:1.5}
+.tools{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 16px}
+.link{background:none;border:0;color:var(--muted);font:500 .9rem "Rubik",sans-serif;text-decoration:underline;cursor:pointer;padding:6px}
+.copied{color:var(--pink)}
+#clip{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+@media (prefers-reduced-motion:reduce){.card,.card.swipe-out-next,.card.swipe-out-prev{transition:none}.playing .disc{animation:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">היטסטר<small id="sub">בחרו קטגוריה</small></h1>
+  <div class="count" id="count"></div>
+</header>
+<main>
+  <section class="menu" id="menu"></section>
+
+  <section id="game" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="stage" id="stage">
+      <div class="card" id="card" role="button" tabindex="0" aria-label="הקשה הופכת את הקלף">
+        <div class="face front">
+          <div class="disc"></div>
+          <p>נגנו את השיר, נחשו את השנה, ואז הקישו על הקלף כדי לגלות.</p>
+        </div>
+        <div class="face back" id="back">
+          <div class="year" id="year"></div>
+          <div class="artist" id="artist" dir="ltr"></div>
+          <div class="song" id="song" dir="ltr"></div>
+          <div class="extra" id="extra" dir="ltr"></div>
+        </div>
+      </div>
+    </div>
+
+    <a class="play" id="play" href="https://open.spotify.com" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      נגן בספוטיפיי
+    </a>
+
+    <div class="row">
+      <button class="btn" id="prev">הקודם</button>
+      <button class="btn solid" id="flip">גלה</button>
+      <button class="btn" id="next">הבא</button>
+    </div>
+    <p class="hint">החליקו ימינה ושמאלה כדי לעבור בין קלפים. מי שמחזיק את הטלפון מנגן בלי להציץ.</p>
+    <div class="tools">
+      <button class="link" id="menuBtn">החלף קטגוריה</button>
+      <button class="link" id="copy">הקישור לא נפתח? העתק לחיפוש</button>
+      <button class="link" id="shuffle">ערבב מחדש</button>
+    </div>
+    <input id="clip" aria-hidden="true" tabindex="-1" readonly>
+  </section>
+</main>
+
+<script>
+// [artist, song, year, type]  type: b = boy group, g = girl group, s = solo/other
+const KPOP = [
+// boy groups
+["BIGBANG","Haru Haru",2008,"b"],["BIGBANG","Tonight",2011,"b"],["BIGBANG","Fantastic Baby",2012,"b"],["BIGBANG","Bad Boy",2012,"b"],["BIGBANG","Monster",2012,"b"],["BIGBANG","BANG BANG BANG",2015,"b"],["BIGBANG","Loser",2015,"b"],
+["TVXQ","Mirotic",2008,"b"],["TVXQ","Keep Your Head Down",2011,"b"],["TVXQ","Catch Me",2012,"b"],["TVXQ","Something",2014,"b"],
+["SHINee","Replay",2008,"b"],["SHINee","Ring Ding Dong",2009,"b"],["SHINee","Juliette",2009,"b"],["SHINee","Lucifer",2010,"b"],["SHINee","Sherlock",2012,"b"],["SHINee","Dream Girl",2013,"b"],["SHINee","Everybody",2013,"b"],["SHINee","View",2015,"b"],
+["Super Junior","Sorry, Sorry",2009,"b"],["Super Junior","Bonamana",2010,"b"],["Super Junior","Mr. Simple",2011,"b"],["Super Junior","Sexy, Free & Single",2012,"b"],["Super Junior","Mamacita",2014,"b"],["Super Junior","Devil",2015,"b"],
+["2PM","10 Out of 10",2008,"b"],["2PM","Again & Again",2009,"b"],["2PM","Heartbeat",2009,"b"],["2PM","Without U",2010,"b"],["2PM","I'll Be Back",2010,"b"],["2PM","Hands Up",2011,"b"],["2PM","Comeback When You Hear This Song",2013,"b"],["2PM","A.D.T.O.Y.",2013,"b"],["2PM","Go Crazy!",2014,"b"],["2PM","My House",2015,"b"],
+["FT Island","I Hope",2009,"b"],["FT Island","Love Love Love",2009,"b"],["FT Island","Hello Hello",2011,"b"],["FT Island","Severely",2012,"b"],["FT Island","I Wish",2012,"b"],["FT Island","Pray",2015,"b"],
+["BEAST","Bad Girl",2009,"b"],["BEAST","Shock",2010,"b"],["BEAST","Breath",2010,"b"],["BEAST","Fiction",2011,"b"],["BEAST","Beautiful Night",2012,"b"],["BEAST","Shadow",2013,"b"],["BEAST","Good Luck",2014,"b"],["BEAST","12:30",2014,"b"],["BEAST","YeY",2015,"b"],["BEAST","Ribbon",2015,"b"],
+["B1A4","OK",2011,"b"],["B1A4","Beautiful Target",2011,"b"],["B1A4","Baby I'm Sorry",2012,"b"],["B1A4","Tried to Walk",2013,"b"],["B1A4","What's Happening?",2013,"b"],["B1A4","Lonely",2014,"b"],["B1A4","Solo Day",2014,"b"],["B1A4","Sweet Girl",2015,"b"],
+["B.A.P","Warrior",2012,"b"],["B.A.P","Power",2012,"b"],["B.A.P","Stop It",2012,"b"],["B.A.P","No Mercy",2012,"b"],["B.A.P","One Shot",2013,"b"],["B.A.P","Coffee Shop",2013,"b"],["B.A.P","Badman",2013,"b"],["B.A.P","1004 (Angel)",2014,"b"],
+["CNBLUE","I'm a Loner",2010,"b"],["CNBLUE","Love",2010,"b"],
+["INFINITE","Be Mine",2011,"b"],["INFINITE","Paradise",2011,"b"],["INFINITE","The Chaser",2012,"b"],["INFINITE","Last Romeo",2014,"b"],
+["MBLAQ","Mona Lisa",2011,"b"],["Teen Top","Rocking",2012,"b"],
+["EXO","Growl",2013,"b"],["EXO","Wolf",2013,"b"],["EXO","Overdose",2014,"b"],["EXO","Call Me Baby",2015,"b"],["EXO","Love Me Right",2015,"b"],
+["Block B","Nillili Mambo",2013,"b"],["Block B","Very Good",2013,"b"],["Block B","H.E.R",2014,"b"],
+["VIXX","Voodoo Doll",2013,"b"],["VIXX","Error",2014,"b"],
+["BTS","No More Dream",2013,"b"],["BTS","Boy In Luv",2014,"b"],["BTS","I Need U",2015,"b"],["BTS","Dope",2015,"b"],["BTS","Run",2015,"b"],
+["GOT7","Girls Girls Girls",2014,"b"],["GOT7","Just Right",2015,"b"],["WINNER","Empty",2014,"b"],["iKON","My Type",2015,"b"],
+["MONSTA X","Hero",2015,"b"],["SEVENTEEN","Adore U",2015,"b"],
+["Super Junior","It's You",2009,"b"],["Super Junior","No Other",2010,"b"],["Super Junior","A-Cha",2011,"b"],["Super Junior","Spy",2012,"b"],["Super Junior","This Is Love",2014,"b"],["Super Junior","Magic",2015,"b"],
+["Super Junior-H","Cooking? Cooking!",2008,"b"],["Super Junior-M","U",2008,"b"],["Super Junior-M","Super Girl",2009,"b"],["Super Junior-M","Perfection",2011,"b"],["Super Junior-M","Break Down",2013,"b"],["Super Junior-M","Swing",2014,"b"],
+["Super Junior-D&E","Oppa, Oppa",2011,"b"],["Super Junior-D&E","Growing Pains",2015,"b"],
+["2PM","Take Off",2011,"b"],["2PM","Beautiful",2012,"b"],["FT Island","Flower Rock",2010,"b"],
+["BEAST","Mystery",2009,"b"],["BEAST","How To Love",2010,"b"],["BEAST","On Rainy Days",2011,"b"],["BEAST","Midnight",2012,"b"],
+["B.A.P","Where Are You? What Are You Doing?",2014,"b"],
+// favourites outside 2008–2015 (favourites deck only)
+["Super Junior","Twins (Knife)",2005,"x"],["Super Junior","Miracle",2005,"x"],["Super Junior","U",2006,"x"],["Super Junior","Don't Don",2007,"x"],["Super Junior","Marry U",2007,"x"],
+["Super Junior","Black Suit",2017,"x"],["Super Junior","Lo Siento",2018,"x"],["Super Junior","One More Time (Otra Vez)",2018,"x"],["Super Junior","SUPER Clap",2019,"x"],["Super Junior","House Party",2021,"x"],["Super Junior","Mango",2022,"x"],
+["Super Junior-T","Rokkugo!!!",2007,"x"],["Yesung","Here I Am",2016,"x"],["Ryeowook","The Little Prince",2016,"x"],
+["2PM","Promise (I'll Be)",2016,"x"],["2PM","Make It",2021,"x"],["FT Island","Love Sick",2007,"x"],
+["Highlight","Plz Don't Be Sad",2017,"x"],["Highlight","Calling You",2017,"x"],["B1A4","Good Timing",2016,"x"],
+["B.A.P","Skydive",2016,"x"],["B.A.P","Wake Me Up",2017,"x"],["B.A.P","Honeymoon",2017,"x"],
+// girl groups
+["Wonder Girls","Nobody",2008,"g"],["Wonder Girls","So Hot",2008,"g"],["Wonder Girls","2 Different Tears",2010,"g"],["Wonder Girls","Be My Baby",2011,"g"],["Wonder Girls","Like This",2012,"g"],["Wonder Girls","I Feel You",2015,"g"],
+["Girls' Generation","Gee",2009,"g"],["Girls' Generation","Genie",2009,"g"],["Girls' Generation","Oh!",2010,"g"],["Girls' Generation","Run Devil Run",2010,"g"],["Girls' Generation","Hoot",2010,"g"],["Girls' Generation","The Boys",2011,"g"],["Girls' Generation","I Got a Boy",2013,"g"],["Girls' Generation","Lion Heart",2015,"g"],["Girls' Generation","Party",2015,"g"],
+["KARA","Honey",2009,"g"],["KARA","Mister",2009,"g"],["KARA","Lupin",2010,"g"],["KARA","Step",2011,"g"],["KARA","Pandora",2012,"g"],
+["2NE1","I Don't Care",2009,"g"],["2NE1","Fire",2009,"g"],["2NE1","Can't Nobody",2010,"g"],["2NE1","Clap Your Hands",2010,"g"],["2NE1","I Am the Best",2011,"g"],["2NE1","Lonely",2011,"g"],["2NE1","Ugly",2011,"g"],["2NE1","Falling in Love",2013,"g"],["2NE1","Missing You",2013,"g"],["2NE1","Come Back Home",2014,"g"],
+["f(x)","Chu~♡",2009,"g"],["f(x)","NU ABO",2010,"g"],["f(x)","Hot Summer",2011,"g"],["f(x)","Electric Shock",2012,"g"],["f(x)","Rum Pum Pum Pum",2013,"g"],["f(x)","Red Light",2014,"g"],["f(x)","4 Walls",2015,"g"],
+["T-ARA","Bo Peep Bo Peep",2009,"g"],["T-ARA","Lies",2009,"g"],["T-ARA","Roly-Poly",2011,"g"],["T-ARA","Cry Cry",2011,"g"],["T-ARA","Lovey-Dovey",2012,"g"],["T-ARA","Sexy Love",2012,"g"],
+["4MINUTE","Hot Issue",2009,"g"],["4MINUTE","Muzik",2009,"g"],["4MINUTE","HuH",2011,"g"],["4MINUTE","Volume Up",2012,"g"],["4MINUTE","What's Your Name?",2013,"g"],["4MINUTE","Crazy",2015,"g"],
+["Brown Eyed Girls","Abracadabra",2009,"g"],["Brown Eyed Girls","Sixth Sense",2011,"g"],
+["After School","Bang!",2010,"g"],["Secret","Magic",2010,"g"],["Secret","Shy Boy",2011,"g"],["Secret","Starlight Moonlight",2011,"g"],["Rainbow","A",2010,"g"],
+["miss A","Bad Girl Good Girl",2010,"g"],["miss A","Good-bye Baby",2011,"g"],["miss A","Hush",2013,"g"],["miss A","Only You",2015,"g"],
+["SISTAR","Push Push",2010,"g"],["SISTAR","So Cool",2011,"g"],["SISTAR","Alone",2012,"g"],["SISTAR","Give It to Me",2013,"g"],["SISTAR","Touch My Body",2014,"g"],["SISTAR","Shake It",2015,"g"],
+["Apink","My My",2011,"g"],["Apink","NoNoNo",2013,"g"],["Apink","Mr. Chu",2014,"g"],["Apink","LUV",2014,"g"],["Apink","Remember",2015,"g"],
+["Crayon Pop","Bar Bar Bar",2013,"g"],["Girl's Day","Expectation",2013,"g"],["Girl's Day","Something",2014,"g"],
+["AOA","Miniskirt",2014,"g"],["AOA","Like a Cat",2014,"g"],["AOA","Heart Attack",2015,"g"],["EXID","Up & Down",2014,"g"],
+["Red Velvet","Happiness",2014,"g"],["Red Velvet","Ice Cream Cake",2015,"g"],["Red Velvet","Dumb Dumb",2015,"g"],
+["GFRIEND","Glass Bead",2015,"g"],["GFRIEND","Me Gustas Tu",2015,"g"],["MAMAMOO","Um Oh Ah Yeh",2015,"g"],["TWICE","Like OOH-AHH",2015,"g"],
+["Girls' Generation","Paparazzi",2012,"g"],["Girls' Generation","Dancing Queen",2012,"g"],["Girls' Generation","Mr.Mr.",2014,"g"],["Girls' Generation","Catch Me If You Can",2015,"g"],
+["KARA","Jumping",2010,"g"],["KARA","Damaged Lady",2013,"g"],["2NE1","Do You Love Me",2013,"g"],["2NE1","Crush",2014,"g"],
+["f(x)","Pinocchio (Danger)",2011,"g"],["T-ARA","Day by Day",2012,"g"],["T-ARA","Number Nine",2013,"g"],
+["SISTAR","Loving U",2012,"g"],["SISTAR","I Swear",2014,"g"],["Apink","BUBIBU",2012,"g"],["Secret","Poison",2012,"g"],
+["Girl's Day","Darling",2014,"g"],["AOA","Short Hair",2014,"g"],["Dal Shabet","Supa Dupa Diva",2011,"g"],
+["Orange Caramel","Lipstick",2012,"g"],["Orange Caramel","Catallena",2014,"g"],["Brown Eyed Girls","Kill Bill",2013,"g"],
+["EXID","Ah Yeah",2015,"g"],["EXID","Hot Pink",2015,"g"],["Lovelyz","Ah-Choo",2015,"g"],["OH MY GIRL","Closer",2015,"g"],["9MUSES","Dolls",2013,"g"],
+// solo & others (mixed deck only)
+["G-DRAGON","Heartbreaker",2009,"s"],["G-DRAGON","Crayon",2012,"s"],["G-DRAGON","Coup d'Etat",2013,"s"],["TAEYANG","I Need a Girl",2010,"s"],["TAEYANG","Eyes, Nose, Lips",2014,"s"],
+["IU","Good Day",2010,"s"],["IU","You & I",2011,"s"],["PSY","Gangnam Style",2012,"s"],["HyunA","Bubble Pop!",2011,"s"],["SUNMI","24 Hours",2013,"s"],
+["Busker Busker","Cherry Blossom Ending",2012,"s"],["AKMU","200%",2014,"s"],
+["Kyuhyun","At Gwanghwamun",2014,"s"],["Kyuhyun","A Million Pieces",2015,"s"],["Henry","Trap",2013,"s"],["Jang Wooyoung","Sexy Lady",2012,"s"],
+["Lee Hongki","Insensible",2015,"s"],["Yang Yoseob","Caffeine",2012,"s"],["Trouble Maker","Trouble Maker",2011,"s"],["Trouble Maker","Now",2013,"s"]
+];
+const FAVS = ["B.A.P","2PM","FT Island","BEAST","B1A4","Super Junior",
+  "Super Junior-H","Super Junior-M","Super Junior-T","Super Junior-D&E","Kyuhyun","Yesung","Ryeowook","Henry",
+  "Jang Wooyoung","Lee Hongki","Highlight","Yang Yoseob","Trouble Maker"];
+
+// [artist, song, year, anime + OP/ED]
+const ANIME = [
+["Hironobu Kageyama","CHA-LA HEAD-CHA-LA",1989,"Dragon Ball Z · OP"],
+["DALI","Moonlight Densetsu",1992,"Sailor Moon · OP"],
+["BAAD","Kimi ga Suki da to Sakebitai",1993,"Slam Dunk · OP"],
+["Yoko Takahashi","A Cruel Angel's Thesis",1995,"Neon Genesis Evangelion · OP"],
+["CLAIRE","Fly Me to the Moon",1995,"Neon Genesis Evangelion · ED"],
+["JUDY AND MARY","Sobakasu",1996,"Rurouni Kenshin · OP"],
+["Rica Matsumoto","Mezase Pokémon Master",1997,"Pokémon · OP"],
+["SEATBELTS","Tank!",1998,"Cowboy Bebop · OP"],
+["SEATBELTS","The Real Folk Blues",1998,"Cowboy Bebop · ED"],
+["Gumi","Catch You Catch Me",1998,"Cardcaptor Sakura · OP"],
+["Hiroshi Kitadani","We Are!",1999,"One Piece · OP"],
+["Kōji Wada","Butter-Fly",1999,"Digimon Adventure · OP"],
+["V6","Change the World",2000,"Inuyasha · OP"],
+["Porno Graffitti","Melissa",2003,"Fullmetal Alchemist · OP"],
+["ASIAN KUNG-FU GENERATION","Haruka Kanata",2003,"Naruto · OP"],
+["L'Arc~en~Ciel","Ready Steady Go",2004,"Fullmetal Alchemist · OP"],
+["ASIAN KUNG-FU GENERATION","Rewrite",2004,"Fullmetal Alchemist · OP"],
+["ORANGE RANGE","Asterisk",2004,"Bleach · OP"],
+["Aya Hirano, Minori Chihara, Yūko Gotō","Hare Hare Yukai",2006,"The Melancholy of Haruhi Suzumiya · ED"],
+["Nightmare","the WORLD",2006,"Death Note · OP"],
+["FLOW","COLORS",2006,"Code Geass · OP"],
+["Ikimonogakari","Blue Bird",2008,"Naruto Shippuden · OP"],
+["YUI","Again",2009,"Fullmetal Alchemist: Brotherhood · OP"],
+["FLOW","Sign",2009,"Naruto Shippuden · OP"],
+["supercell","Kimi no Shiranai Monogatari",2009,"Bakemonogatari · ED"],
+["Mio Akiyama (Yōko Hikasa)","Don't Say \"Lazy\"",2009,"K-On! · ED"],
+["Sukima Switch","Golden Time Lover",2010,"Fullmetal Alchemist: Brotherhood · OP"],
+["Kanako Itō","Hacking to the Gate",2011,"Steins;Gate · OP"],
+["ClariS","Connect",2011,"Puella Magi Madoka Magica · OP"],
+["Masatoshi Ono","Departure!",2011,"Hunter x Hunter · OP"],
+["LiSA","crossing field",2012,"Sword Art Online · OP"],
+["Hiroaki \"TOMMY\" Tominaga","Sono Chi no Sadame",2012,"JoJo's Bizarre Adventure · OP"],
+["Linked Horizon","Guren no Yumiya",2013,"Attack on Titan · OP"],
+["Coda","BLOODY STREAM",2013,"JoJo's Bizarre Adventure · OP"],
+["TK from Ling tosite sigure","unravel",2014,"Tokyo Ghoul · OP"],
+["KANA-BOON","Silhouette",2014,"Naruto Shippuden · OP"],
+["SPYAIR","Imagination",2014,"Haikyu!! · OP"],
+["Goose house","Hikaru Nara",2014,"Your Lie in April · OP"],
+["JAM Project","THE HERO!!",2015,"One Punch Man · OP"],
+["Porno Graffitti","THE DAY",2016,"My Hero Academia · OP"],
+["Linked Horizon","Shinzou wo Sasageyo!",2017,"Attack on Titan · OP"],
+["Kenshi Yonezu","Peace Sign",2017,"My Hero Academia · OP"],
+["LiSA","Gurenge",2019,"Demon Slayer · OP"],
+["Eve","Kaikai Kitan",2020,"Jujutsu Kaisen · OP"],
+["SiM","The Rumbling",2022,"Attack on Titan · OP"],
+["Kenshi Yonezu","KICK BACK",2022,"Chainsaw Man · OP"],
+["Official HIGE DANdism","Mixed Nuts",2022,"Spy x Family · OP"],
+["Kessoku Band","Seishun Complex",2022,"Bocchi the Rock! · OP"],
+["YOASOBI","Idol",2023,"Oshi no Ko · OP"],
+["YOASOBI","Yuusha",2023,"Frieren · OP"],
+["Creepy Nuts","Bling-Bang-Bang-Born",2024,"Mashle · OP"],
+["Creepy Nuts","Otonoke",2024,"Dandadan · OP"],
+["Ichiro Mizuki","Mazinger Z",1972,"Mazinger Z · OP"],
+["Isao Sasaki","Uchū Senkan Yamato",1974,"Space Battleship Yamato · OP"],
+["Crystal King","Ai wo Torimodose!!",1984,"Fist of the North Star · OP"],
+["Mari Iijima","Ai Oboete Imasu ka",1984,"Macross: Do You Remember Love? · Theme"],
+["MAKE-UP","Pegasus Fantasy",1986,"Saint Seiya · OP"],
+["Hiroki Takahashi","Makafushigi Adventure!",1986,"Dragon Ball · OP"],
+["Ushio Hashimoto","Romantic Ageru yo",1986,"Dragon Ball · ED"],
+["TM NETWORK","Get Wild",1987,"City Hunter · ED"],
+["B.B.Queens","Odoru Pompokolin",1990,"Chibi Maruko-chan · ED"],
+["Naomi Tamura","Yuzurenai Negai",1994,"Magic Knight Rayearth · OP"],
+["TWO-MIX","JUST COMMUNICATION",1995,"Gundam Wing · OP"],
+["Megumi Hayashibara","Give a Reason",1996,"Slayers Next · OP"],
+["bôa","Duvet",1998,"Serial Experiments Lain · OP"],
+["Maaya Sakamoto","Platinum",1999,"Cardcaptor Sakura · OP"],
+["Megumi Hayashibara","Over Soul",2001,"Shaman King · OP"],
+["Origa","Inner Universe",2002,"Ghost in the Shell: SAC · OP"],
+["Akeboshi","Wind",2002,"Naruto · ED"],
+["Mikuni Shimokawa","Sore ga Ai Deshō",2003,"Full Metal Panic? Fumoffu · OP"],
+["Nujabes","Battlecry",2004,"Samurai Champloo · OP"],
+["MINMI","Shiki no Uta",2004,"Samurai Champloo · ED"],
+["Kumiko Noma","Lilium",2004,"Elfen Lied · OP"],
+["HIGH and MIGHTY COLOR","Ichirin no Hana",2005,"Bleach · OP"],
+["Chieko Kawabe","Sakura Kiss",2006,"Ouran High School Host Club · OP"],
+["nobodyknows+","Hero's Come Back!!",2007,"Naruto Shippuden · OP"],
+["Aya Hirano, Emiri Katō, Kaori Fukuhara, Aya Endō","Motteke! Sailor Fuku",2007,"Lucky Star · OP"],
+["Shoko Nakagawa","Sorairo Days",2007,"Gurren Lagann · OP"],
+["Chata","Dango Daikazoku",2007,"Clannad · ED"],
+["May'n & Megumi Nakajima","Lion",2008,"Macross Frontier · OP"],
+["NICO Touches the Walls","Hologram",2009,"Fullmetal Alchemist: Brotherhood · OP"],
+["CHEMISTRY","Period",2009,"Fullmetal Alchemist: Brotherhood · OP"],
+["fripSide","only my railgun",2009,"A Certain Scientific Railgun · OP"],
+["Takayoshi Tanimoto","Dragon Soul",2009,"Dragon Ball Kai · OP"],
+["SID","Rain",2010,"Fullmetal Alchemist: Brotherhood · OP"],
+["Theatre Brook","Uragiri no Yuuyake",2010,"Durarara!! · OP"],
+["Lia","My Soul, Your Beats!",2010,"Angel Beats! · OP"],
+["Kalafina","Hikari no Senritsu",2010,"Sora no Woto · OP"],
+["LiSA","Rising Hope",2014,"The Irregular at Magic High School · OP"],
+["Eir Aoi","IGNITE",2014,"Sword Art Online II · OP"],
+["Konomi Suzuki","This Game",2014,"No Game No Life · OP"],
+["UNISON SQUARE GARDEN","Sugar Song to Bitter Step",2015,"Blood Blockade Battlefront · ED"],
+["Konomi Suzuki","Redo",2016,"Re:Zero · OP"],
+["Karen Aoki & Daisuke Hasegawa","Great Days",2016,"JoJo's Bizarre Adventure · OP"],
+["Namie Amuro","Hope",2017,"One Piece · OP"],
+["YOSHIKI feat. HYDE","Red Swan",2018,"Attack on Titan · OP"],
+["Coda","Fighting Gold",2018,"JoJo's Bizarre Adventure · OP"],
+["UVERworld","ODD FUTURE",2018,"My Hero Academia · OP"],
+["Aimer","Ref:rain",2018,"After the Rain · ED"],
+["Minami","Kawaki wo Ameku",2019,"Domestic Girlfriend · OP"],
+["Mrs. GREEN APPLE","Inferno",2019,"Fire Force · OP"],
+["Aimer","Zankyou Sanka",2021,"Demon Slayer · OP"],
+["Ai Higuchi","Akuma no Ko",2022,"Attack on Titan · ED"],
+["King Gnu","SPECIALZ",2023,"Jujutsu Kaisen · OP"],
+["Tatsuya Kitani","Ao no Sumika",2023,"Jujutsu Kaisen · OP"],
+["Ado","Kura Kura",2023,"Spy x Family · OP"],
+["Queen Bee","Mephisto",2023,"Oshi no Ko · ED"]
+];
+
+// shonen anime 2015 → today: [artist, song, year, anime + OP/ED]
+const SHONEN = [
+["Yamazaru","Kaze",2015,"Naruto Shippuden · OP"],["ASIAN KUNG-FU GENERATION","Blood Circulator",2016,"Naruto Shippuden · OP"],["Anly","Kara no Kokoro",2016,"Naruto Shippuden · OP"],
+["KANA-BOON","Baton Road",2017,"Boruto · OP"],["Little Glee Monster","OVER",2017,"Boruto · OP"],
+["Kishidan & Hiroshi Kitadani","We Can!",2016,"One Piece · OP"],["Namie Amuro","Hope",2017,"One Piece · OP"],["Hiroshi Kitadani","OVER THE TOP",2019,"One Piece · OP"],["Da-iCE","DREAMIN' ON",2020,"One Piece · OP"],["Hiroshi Kitadani","Us!",2024,"One Piece · OP"],
+["Porno Graffitti","THE DAY",2016,"My Hero Academia · OP"],["BRIAN THE SUN","HEROES",2016,"My Hero Academia · ED"],["Kenshi Yonezu","Peace Sign",2017,"My Hero Academia · OP"],["amazarashi","Sora ni Utaeba",2017,"My Hero Academia · OP"],["LiSA","Datte Atashi no Hero",2017,"My Hero Academia · ED"],
+["UVERworld","ODD FUTURE",2018,"My Hero Academia · OP"],["Lenny code fiction","Make my story",2018,"My Hero Academia · OP"],["BLUE ENCOUNT","Polaris",2019,"My Hero Academia · OP"],["Ryokuoushoku Shakai","Shout Baby",2020,"My Hero Academia · ED"],["DISH//","No.1",2021,"My Hero Academia · OP"],["Sukima Switch","Hitamuki",2022,"My Hero Academia · OP"],
+["LiSA","Gurenge",2019,"Demon Slayer · OP"],["FictionJunction feat. LiSA","from the edge",2019,"Demon Slayer · ED"],["Go Shiina feat. Nami Nakagawa","Kamado Tanjiro no Uta",2019,"Demon Slayer · ED"],["LiSA","Akeboshi",2021,"Demon Slayer · OP"],["Aimer","Zankyou Sanka",2021,"Demon Slayer · OP"],["Aimer","Asa ga Kuru",2021,"Demon Slayer · ED"],["MAN WITH A MISSION × milet","Kizuna no Kiseki",2023,"Demon Slayer · OP"],["MAN WITH A MISSION × milet","Koi Kogare",2023,"Demon Slayer · ED"],["MY FIRST STORY × HYDE","Mugen",2024,"Demon Slayer · OP"],
+["Eve","Kaikai Kitan",2020,"Jujutsu Kaisen · OP"],["ALI feat. AKLO","Lost in Paradise",2020,"Jujutsu Kaisen · ED"],["Who-ya Extended","VIVID VICE",2021,"Jujutsu Kaisen · OP"],["Cö shu Nie","Give It Back",2021,"Jujutsu Kaisen · ED"],["Tatsuya Kitani","Ao no Sumika",2023,"Jujutsu Kaisen · OP"],["King Gnu","SPECIALZ",2023,"Jujutsu Kaisen · OP"],["Hitsujibungaku","More Than Words",2023,"Jujutsu Kaisen · ED"],
+["Kenshi Yonezu","KICK BACK",2022,"Chainsaw Man · OP"],["Vaundy","CHAINSAW BLOOD",2022,"Chainsaw Man · ED"],["Eve","Fight Song",2022,"Chainsaw Man · ED"],
+["Kankaku Piero","Haruka Mirai",2017,"Black Clover · OP"],["BiSH","PAiNT it BLACK",2018,"Black Clover · OP"],["Vickeblanka","Black Catcher",2018,"Black Clover · OP"],
+["BURNOUT SYNDROMES","Good Morning World!",2019,"Dr. Stone · OP"],["Rude-α","LIFE",2019,"Dr. Stone · ED"],["Fujifabric","Rakuen",2021,"Dr. Stone · OP"],
+["Mrs. GREEN APPLE","Inferno",2019,"Fire Force · OP"],["Keina Suda","veil",2019,"Fire Force · ED"],["Aimer","SPARK-AGAIN",2020,"Fire Force · OP"],
+["SPYAIR","I'm a Believer",2015,"Haikyu!! · OP"],["BURNOUT SYNDROMES","FLY HIGH!!",2016,"Haikyu!! · OP"],["BURNOUT SYNDROMES","Hikari Are",2016,"Haikyu!! · OP"],["BURNOUT SYNDROMES","PHOENIX",2020,"Haikyu!! · OP"],
+["MOB CHOIR","99",2016,"Mob Psycho 100 · OP"],["ALL OFF","Refrain Boy",2016,"Mob Psycho 100 · ED"],["MOB CHOIR feat. sajou no hana","99.9",2019,"Mob Psycho 100 · OP"],["MOB CHOIR","1",2022,"Mob Psycho 100 · OP"],
+["JAM Project","THE HERO!!",2015,"One Punch Man · OP"],["JAM Project","Seijaku no Apostle",2019,"One Punch Man · OP"],
+["Linked Horizon","Shinzou wo Sasageyo!",2017,"Attack on Titan · OP"],["YOSHIKI feat. HYDE","Red Swan",2018,"Attack on Titan · OP"],["Linked Horizon","Shoukei to Shikabane no Michi",2019,"Attack on Titan · OP"],["Shinsei Kamattechan","Boku no Sensou",2020,"Attack on Titan · OP"],["SiM","The Rumbling",2022,"Attack on Titan · OP"],["Ai Higuchi","Akuma no Ko",2022,"Attack on Titan · ED"],
+["Official HIGE DANdism","Cry Baby",2021,"Tokyo Revengers · OP"],["Official HIGE DANdism","White Noise",2023,"Tokyo Revengers · OP"],
+["Official HIGE DANdism","Mixed Nuts",2022,"Spy x Family · OP"],["Gen Hoshino","Kigeki",2022,"Spy x Family · ED"],["BUMP OF CHICKEN","SOUVENIR",2022,"Spy x Family · OP"],["Ado","Kura Kura",2023,"Spy x Family · OP"],["Vaundy feat. Cory Wong","Todome no Ichigeki",2023,"Spy x Family · ED"],
+["UNISON SQUARE GARDEN","Chaos ga Kiwamaru",2022,"Blue Lock · OP"],["millennium parade × Ringo Sheena","W●RK",2023,"Hell's Paradise · OP"],
+["Creepy Nuts","Know Know Know",2023,"Mashle · OP"],["Creepy Nuts","Bling-Bang-Bang-Born",2024,"Mashle · OP"],
+["Creepy Nuts","Otonoke",2024,"Dandadan · OP"],["Aimer","Taiyou ga Noboranai Sekai",2024,"Dandadan · ED"],["Aina The End","On the Way",2025,"Dandadan · OP"],
+["YUNGBLUD","Abyss",2024,"Kaiju No. 8 · OP"],["OneRepublic","Nobody",2024,"Kaiju No. 8 · ED"],
+["YOASOBI","Yuusha",2023,"Frieren · OP"],["milet","Anytime Anywhere",2023,"Frieren · ED"],
+["UVERworld","Touch Off",2019,"The Promised Neverland · OP"],["Cö shu Nie","Zettai Zetsumei",2019,"The Promised Neverland · ED"],
+["3-nen E-gumi Utatan","Seishun Satsubatsuron",2015,"Assassination Classroom · OP"],["3-nen E-gumi Utatan","QUESTION",2016,"Assassination Classroom · OP"],
+["Kazuya Yoshii","Chōzetsu☆Dynamic!",2015,"Dragon Ball Super · OP"],["Kiyoshi Hikawa","Limit-Break x Survivor",2017,"Dragon Ball Super · OP"],
+["Tatsuya Kitani","Scar",2022,"Bleach: Thousand-Year Blood War · OP"],
+["THE DU","Crazy Noisy Bizarre Town",2016,"JoJo's Bizarre Adventure · OP"],["Karen Aoki & Daisuke Hasegawa","Great Days",2016,"JoJo's Bizarre Adventure · OP"],["Coda","Fighting Gold",2018,"JoJo's Bizarre Adventure · OP"],["Daisuke Hasegawa","Uragirimono no Requiem",2019,"JoJo's Bizarre Adventure · OP"],["ichigo","STONE OCEAN",2021,"JoJo's Bizarre Adventure · OP"],
+["SawanoHiroyuki[nZk]:TOMORROW X TOGETHER","LEveL",2024,"Solo Leveling · OP"],["TK from Ling tosite sigure","request",2024,"Solo Leveling · ED"],["LiSA feat. Felix of Stray Kids","ReawakeR",2025,"Solo Leveling · OP"],
+["Jibaku Shounen Band","No.7",2020,"Toilet-Bound Hanako-kun · OP"],["THE ORAL CIGARETTES","Kyouran Hey Kids!!",2015,"Noragami Aragoto · OP"],["UNISON SQUARE GARDEN","Sugar Song to Bitter Step",2015,"Blood Blockade Battlefront · ED"]
+];
+
+// Disney: animated films + artists who came out of Disney
+const DISNEY = [
+["Adriana Caselotti","Someday My Prince Will Come",1937,"Snow White"],["The Dwarfs","Heigh-Ho",1937,"Snow White"],["Cliff Edwards","When You Wish Upon a Star",1940,"Pinocchio"],
+["Verna Felton","Bibbidi-Bobbidi-Boo",1950,"Cinderella"],["Ilene Woods","A Dream Is a Wish Your Heart Makes",1950,"Cinderella"],["The Jud Conlon Chorus","You Can Fly! You Can Fly! You Can Fly!",1953,"Peter Pan"],
+["George Givot","Bella Notte",1955,"Lady and the Tramp"],["Peggy Lee","The Siamese Cat Song",1955,"Lady and the Tramp"],["Mary Costa & Bill Shirley","Once Upon a Dream",1959,"Sleeping Beauty"],
+["Bill Lee","Cruella De Vil",1961,"101 Dalmatians"],["Phil Harris & Bruce Reitherman","The Bare Necessities",1967,"The Jungle Book"],["Louis Prima","I Wan'na Be Like You",1967,"The Jungle Book"],
+["Scatman Crothers & Phil Harris","Ev'rybody Wants to Be a Cat",1970,"The Aristocats"],["Roger Miller","Oo-De-Lally",1973,"Robin Hood"],["Nancy Adams","Love",1973,"Robin Hood"],
+["Jodi Benson","Part of Your World",1989,"The Little Mermaid"],["Samuel E. Wright","Under the Sea",1989,"The Little Mermaid"],["Samuel E. Wright","Kiss the Girl",1989,"The Little Mermaid"],["Pat Carroll","Poor Unfortunate Souls",1989,"The Little Mermaid"],
+["Paige O'Hara","Belle",1991,"Beauty and the Beast"],["Angela Lansbury","Beauty and the Beast",1991,"Beauty and the Beast"],["Jerry Orbach & Angela Lansbury","Be Our Guest",1991,"Beauty and the Beast"],["Richard White & Jesse Corti","Gaston",1991,"Beauty and the Beast"],["Paige O'Hara & Robby Benson","Something There",1991,"Beauty and the Beast"],
+["Brad Kane","One Jump Ahead",1992,"Aladdin"],["Robin Williams","Friend Like Me",1992,"Aladdin"],["Robin Williams","Prince Ali",1992,"Aladdin"],["Brad Kane & Lea Salonga","A Whole New World",1992,"Aladdin"],
+["Carmen Twillie & Lebo M.","Circle of Life",1994,"The Lion King"],["Jason Weaver, Rowan Atkinson & Laura Williams","I Just Can't Wait to Be King",1994,"The Lion King"],["Jeremy Irons","Be Prepared",1994,"The Lion King"],["Nathan Lane & Ernie Sabella","Hakuna Matata",1994,"The Lion King"],["Elton John","Can You Feel the Love Tonight",1994,"The Lion King"],
+["Judy Kuhn","Just Around the Riverbend",1995,"Pocahontas"],["Judy Kuhn","Colors of the Wind",1995,"Pocahontas"],["Randy Newman","You've Got a Friend in Me",1995,"Toy Story"],
+["Paul Kandel","The Bells of Notre Dame",1996,"The Hunchback of Notre Dame"],["Tom Hulce","Out There",1996,"The Hunchback of Notre Dame"],["Tony Jay","Hellfire",1996,"The Hunchback of Notre Dame"],
+["Roger Bart","Go the Distance",1997,"Hercules"],["The Muses","Zero to Hero",1997,"Hercules"],["Susan Egan","I Won't Say (I'm in Love)",1997,"Hercules"],
+["Lea Salonga","Reflection",1998,"Mulan"],["Donny Osmond","I'll Make a Man Out of You",1998,"Mulan"],["Christina Aguilera","Reflection",1998,"Mulan"],
+["Phil Collins","Two Worlds",1999,"Tarzan"],["Phil Collins","You'll Be in My Heart",1999,"Tarzan"],["Phil Collins","Strangers Like Me",1999,"Tarzan"],
+["Rascal Flatts","Life Is a Highway",2006,"Cars"],["Sheryl Crow","Real Gone",2006,"Cars"],
+["Anika Noni Rose","Almost There",2009,"The Princess and the Frog"],["Keith David","Friends on the Other Side",2009,"The Princess and the Frog"],
+["Mandy Moore","When Will My Life Begin",2010,"Tangled"],["Donna Murphy","Mother Knows Best",2010,"Tangled"],["Mandy Moore & Zachary Levi","I See the Light",2010,"Tangled"],["Tangled cast","I've Got a Dream",2010,"Tangled"],
+["Idina Menzel","Let It Go",2013,"Frozen"],["Kristen Bell, Agatha Lee Monn & Katie Lopez","Do You Want to Build a Snowman?",2013,"Frozen"],["Kristen Bell & Idina Menzel","For the First Time in Forever",2013,"Frozen"],["Kristen Bell & Santino Fontana","Love Is an Open Door",2013,"Frozen"],["Josh Gad","In Summer",2013,"Frozen"],["Maia Wilson","Fixer Upper",2013,"Frozen"],
+["Shakira","Try Everything",2016,"Zootopia"],["Auliʻi Cravalho","How Far I'll Go",2016,"Moana"],["Dwayne Johnson","You're Welcome",2016,"Moana"],["Jemaine Clement","Shiny",2016,"Moana"],["Rachel House","Where You Are",2016,"Moana"],
+["Anthony Gonzalez","Un Poco Loco",2017,"Coco"],["Miguel & Natalia Lafourcade","Remember Me",2017,"Coco"],
+["Idina Menzel & AURORA","Into the Unknown",2019,"Frozen II"],["Idina Menzel","Show Yourself",2019,"Frozen II"],["Jonathan Groff","Lost in the Woods",2019,"Frozen II"],
+["Encanto cast","We Don't Talk About Bruno",2021,"Encanto"],["Jessica Darrow","Surface Pressure",2021,"Encanto"],["Stephanie Beatriz","Waiting on a Miracle",2021,"Encanto"],["Encanto cast","The Family Madrigal",2021,"Encanto"],["Sebastián Yatra","Dos Oruguitas",2021,"Encanto"],
+["Ariana DeBose","This Wish",2023,"Wish"],["Auliʻi Cravalho","Beyond",2024,"Moana 2"],
+["Britney Spears","...Baby One More Time",1998,"The Mickey Mouse Club"],["Christina Aguilera","Genie in a Bottle",1999,"The Mickey Mouse Club"],["*NSYNC","Bye Bye Bye",2000,"The Mickey Mouse Club"],
+["Justin Timberlake","Cry Me a River",2002,"The Mickey Mouse Club"],["Justin Timberlake","SexyBack",2006,"The Mickey Mouse Club"],
+["Hilary Duff","So Yesterday",2003,"Lizzie McGuire"],["Hilary Duff","Come Clean",2003,"Lizzie McGuire"],["Lindsay Lohan","Rumors",2004,"Disney films"],
+["Troy & Gabriella","Breaking Free",2006,"High School Musical"],["High School Musical cast","We're All in This Together",2006,"High School Musical"],["Troy, Chad & Basketball team","Get'cha Head in the Game",2006,"High School Musical"],
+["High School Musical cast","What Time Is It",2007,"High School Musical 2"],["Troy","Bet On It",2007,"High School Musical 2"],
+["Hannah Montana","The Best of Both Worlds",2006,"Hannah Montana"],["Hannah Montana","Nobody's Perfect",2007,"Hannah Montana"],["Hannah Montana","He Could Be the One",2009,"Hannah Montana"],["Miley Cyrus","The Climb",2009,"Hannah Montana: The Movie"],["Miley Cyrus","Hoedown Throwdown",2009,"Hannah Montana: The Movie"],
+["Miley Cyrus","See You Again",2007,"Hannah Montana"],["Miley Cyrus","7 Things",2008,"Hannah Montana"],["Miley Cyrus","Party in the U.S.A.",2009,"Hannah Montana"],["Miley Cyrus","We Can't Stop",2013,"Hannah Montana"],["Miley Cyrus","Wrecking Ball",2013,"Hannah Montana"],["Miley Cyrus","Malibu",2017,"Hannah Montana"],["Miley Cyrus","Flowers",2023,"Hannah Montana"],
+["Aly & AJ","Potential Breakup Song",2007,"Disney Channel"],["Ashley Tisdale","He Said She Said",2007,"High School Musical"],
+["Jonas Brothers","S.O.S.",2007,"Disney Channel"],["Jonas Brothers","Burnin' Up",2008,"Disney Channel"],["Jonas Brothers","Lovebug",2008,"Disney Channel"],["Jonas Brothers","Sucker",2019,"Disney Channel"],["DNCE","Cake by the Ocean",2015,"Disney Channel"],
+["Demi Lovato & Joe Jonas","This Is Me",2008,"Camp Rock"],["Camp Rock cast","We Rock",2008,"Camp Rock"],
+["Demi Lovato","La La Land",2008,"Camp Rock"],["Demi Lovato","Here We Go Again",2009,"Sonny with a Chance"],["Demi Lovato","Skyscraper",2011,"Sonny with a Chance"],["Demi Lovato","Heart Attack",2013,"Sonny with a Chance"],["Demi Lovato","Cool for the Summer",2015,"Sonny with a Chance"],["Demi Lovato","Sorry Not Sorry",2017,"Sonny with a Chance"],
+["Selena Gomez & the Scene","Naturally",2009,"Wizards of Waverly Place"],["Selena Gomez & the Scene","Who Says",2011,"Wizards of Waverly Place"],["Selena Gomez & the Scene","Love You Like a Love Song",2011,"Wizards of Waverly Place"],
+["Selena Gomez","Come & Get It",2013,"Wizards of Waverly Place"],["Selena Gomez","Good for You",2015,"Wizards of Waverly Place"],["Selena Gomez","Lose You to Love Me",2019,"Wizards of Waverly Place"],
+["Bella Thorne & Zendaya","Watch Me",2011,"Shake It Up"],["Zendaya","Replay",2013,"Shake It Up"],["Lemonade Mouth","Determinate",2011,"Lemonade Mouth"],
+["Bridgit Mendler","Ready or Not",2012,"Good Luck Charlie"],["Bridgit Mendler","Hurricane",2013,"Good Luck Charlie"],
+["Descendants cast","Rotten to the Core",2015,"Descendants"],["Descendants cast","Ways to Be Wicked",2017,"Descendants 2"],["Dove Cameron","Boyfriend",2022,"Liv and Maddie"],
+["Sabrina Carpenter","Thumbs",2017,"Girl Meets World"],["Sabrina Carpenter","Nonsense",2022,"Girl Meets World"],["Sabrina Carpenter","Espresso",2024,"Girl Meets World"],["Sabrina Carpenter","Please Please Please",2024,"Girl Meets World"],
+["Olivia Rodrigo","All I Want",2019,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","drivers license",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","good 4 u",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","vampire",2023,"High School Musical: The Musical: The Series"]
+];
+
+const kp = KPOP.map(([a,s,y,t])=>({a,s,y,t,x:""}));
+const CATS = [
+  {id:"boys",  name:"להקות בנים",   range:"2008–2015", icon:"🕺", color:"#7FE0F2", songs:kp.filter(x=>x.t==="b")},
+  {id:"girls", name:"להקות בנות",   range:"2008–2015", icon:"💃", color:"#FF8FB8", songs:kp.filter(x=>x.t==="g")},
+  {id:"mixed", name:"מעורבב",       range:"2008–2015", icon:"🎤", color:"#FFC93C", songs:kp.filter(x=>x.t!=="x")},
+  {id:"eden",  name:"האהובות של עדן", range:"B.A.P · 2PM · FT Island · BEAST · B1A4 · Super Junior, כל השנים", icon:"💜", color:"#C3A6FF", songs:kp.filter(x=>FAVS.includes(x.a))},
+  {id:"anime", name:"פתיחות וסיומים של אנימה", range:"כל הזמנים", icon:"🌸", color:"#9BE88E", songs:ANIME.map(([a,s,y,x])=>({a,s,y,x}))},
+  {id:"shonen", name:"אנימה שונן", range:"2015 עד היום", icon:"🔥", color:"#FF9A5C", songs:SHONEN.map(([a,s,y,x])=>({a,s,y,x}))},
+  {id:"disney", name:"דיסני", range:"סרטים מצוירים וכוכבי דיסני", icon:"🏰", color:"#7FE0F2", songs:DISNEY.map(([a,s,y,x])=>({a,s,y,x}))}
+];
+
+const $=id=>document.getElementById(id);
+const card=$("card");
+let cat=null,deck=[],i=0;
+
+function yearColor(y){
+  const fixed={2008:"#FFC93C",2009:"#FF8FB8",2010:"#7FE0F2",2011:"#C3A6FF",2012:"#FF9A5C",2013:"#9BE88E",2014:"#FFE066",2015:"#FF6FA8"};
+  return fixed[y]||`hsl(${(y*53)%360} 85% 74%)`;
+}
+function store(){try{localStorage.setItem("kh-"+cat.id,JSON.stringify({deck,i}))}catch(e){}}
+function shuffle(){
+  deck=cat.songs.map((s,n)=>n);
+  for(let k=deck.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[deck[k],deck[j]]=[deck[j],deck[k]]}
+  i=0;card.dataset.ready="";render();store();
+}
+function buildMenu(){
+  $("menu").innerHTML="";
+  CATS.forEach(c=>{
+    const b=document.createElement("button");
+    b.className="cat";b.style.setProperty("--c",c.color);
+    b.innerHTML=`<i aria-hidden="true">${c.icon}</i><div style="flex:1"><b></b><span></span></div><em>${c.songs.length} שירים</em>`;
+    b.querySelector("b").textContent=c.name;b.querySelector("span").textContent=c.range;
+    b.onclick=()=>open(c);
+    $("menu").appendChild(b);
+  });
+}
+function showMenu(){
+  cat=null;$("menu").hidden=false;$("game").hidden=true;
+  $("title").firstChild.textContent="היטסטר";$("sub").textContent="בחרו קטגוריה";$("count").textContent="";
+  try{localStorage.removeItem("kh-last")}catch(e){}
+}
+function open(c){
+  cat=c;$("menu").hidden=true;$("game").hidden=false;
+  $("title").firstChild.textContent=c.name;$("sub").textContent=c.range;
+  card.style.setProperty("--disc",c.color);
+  try{localStorage.setItem("kh-last",c.id)}catch(e){}
+  try{
+    const s=JSON.parse(localStorage.getItem("kh-"+c.id)||"null");
+    if(s&&Array.isArray(s.deck)&&s.deck.length===c.songs.length){deck=s.deck;i=Math.min(s.i||0,deck.length-1);card.dataset.ready="";render();return}
+  }catch(e){}
+  shuffle();
+}
+function render(){
+  const t=cat.songs[deck[i]];
+  card.classList.remove("flipped","playing");
+  setTimeout(()=>{
+    $("year").textContent=t.y;$("artist").textContent=t.a;$("song").textContent=t.s;$("extra").textContent=t.x||"";
+    $("back").style.setProperty("--yr",yearColor(t.y));
+  },card.dataset.ready?300:0);
+  card.dataset.ready="1";
+  $("play").href="https://open.spotify.com/search/"+encodeURIComponent(t.a+" "+t.s);
+  $("count").textContent=`${i+1} / ${deck.length}`;
+  $("prev").disabled=i===0;$("next").disabled=i===deck.length-1;
+  $("flip").textContent="גלה";
+}
+function flip(){
+  card.classList.toggle("flipped");
+  $("flip").textContent=card.classList.contains("flipped")?"הסתר":"גלה";
+}
+function go(dir){
+  const n=i+dir;if(n<0||n>=deck.length)return;
+  card.classList.add(dir>0?"swipe-out-next":"swipe-out-prev");
+  setTimeout(()=>{card.classList.remove("swipe-out-next","swipe-out-prev");i=n;render();store()},220);
+}
+async function copyQuery(){
+  const t=cat.songs[deck[i]],q=t.a+" "+t.s,b=$("copy");
+  let ok=false;
+  try{await navigator.clipboard.writeText(q);ok=true}catch(e){}
+  if(!ok){try{const c=$("clip");c.value=q;c.select();ok=document.execCommand("copy")}catch(e){}}
+  b.textContent=ok?"הועתק, הדביקו בחיפוש של ספוטיפיי":"ההעתקה נחסמה בדפדפן הזה";
+  b.classList.add("copied");
+  setTimeout(()=>{b.textContent="הקישור לא נפתח? העתק לחיפוש";b.classList.remove("copied")},2500);
+  card.classList.add("playing");
+}
+
+let swiped=false;
+card.addEventListener("click",()=>{if(swiped)return;flip()});
+card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip()}});
+$("flip").onclick=flip;
+$("play").addEventListener("click",()=>card.classList.add("playing"));
+$("copy").onclick=copyQuery;
+$("next").onclick=()=>go(1);$("prev").onclick=()=>go(-1);
+$("menuBtn").onclick=showMenu;
+$("shuffle").onclick=()=>{if(confirm("לערבב את החפיסה מחדש ולהתחיל מההתחלה?"))shuffle()};
+document.addEventListener("keydown",e=>{if(!cat)return;if(e.key==="ArrowLeft")go(1);if(e.key==="ArrowRight")go(-1)});
+
+let sx=null,sy=null;
+$("stage").addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+$("stage").addEventListener("touchend",e=>{
+  if(sx===null)return;
+  const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){swiped=true;go(dx<0?1:-1);setTimeout(()=>swiped=false,350)}
+  sx=sy=null;
+});
+
+buildMenu();
+let last=null;try{last=localStorage.getItem("kh-last")}catch(e){}
+const lc=CATS.find(c=>c.id===last);
+if(lc)open(lc);else showMenu();
+</script>
+</body>
+</html>
