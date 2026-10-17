@@ -163,7 +163,12 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offse
       <button class="link" id="menuBtn">החלף קטגוריה</button>
       <button class="link" id="copy">הקישור לא נפתח? העתק לחיפוש</button>
       <button class="link" id="shuffle">ערבב מחדש</button>
+      <button class="link" id="spCheck" hidden>בדוק שירים בספוטיפיי</button>
       <button class="link" id="spLogout" hidden>התנתק מספוטיפיי</button>
+    </div>
+    <div id="checkPanel" hidden style="display:flex;flex-direction:column;gap:8px">
+      <textarea id="checkOut" readonly dir="ltr" rows="10" style="width:100%;font:13px/1.5 system-ui,sans-serif;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);padding:10px"></textarea>
+      <button class="btn" id="checkCopy">העתק את התוצאות</button>
     </div>
     <input id="clip" aria-hidden="true" tabindex="-1" readonly>
   </section>
@@ -386,8 +391,8 @@ const SHONEN = [
 ["Jibaku Shounen Band","No.7",2020,"Toilet-Bound Hanako-kun · OP"],["THE ORAL CIGARETTES","Kyouran Hey Kids!!",2015,"Noragami Aragoto · OP"],["UNISON SQUARE GARDEN","Sugar Song to Bitter Step",2015,"Blood Blockade Battlefront · ED"]
 ];
 
-// Disney: animated films + artists who came out of Disney
-const DISNEY = [
+// Disney animated films (incl. Pixar)
+const DISNEY_FILMS = [
 ["Adriana Caselotti","Someday My Prince Will Come",1937,"Snow White"],["The Dwarfs","Heigh-Ho",1937,"Snow White"],["Cliff Edwards","When You Wish Upon a Star",1940,"Pinocchio"],
 ["Verna Felton","Bibbidi-Bobbidi-Boo",1950,"Cinderella"],["Ilene Woods","A Dream Is a Wish Your Heart Makes",1950,"Cinderella"],["The Jud Conlon Chorus","You Can Fly! You Can Fly! You Can Fly!",1953,"Peter Pan"],
 ["George Givot","Bella Notte",1955,"Lady and the Tramp"],["Peggy Lee","The Siamese Cat Song",1955,"Lady and the Tramp"],["Mary Costa & Bill Shirley","Once Upon a Dream",1959,"Sleeping Beauty"],
@@ -411,6 +416,24 @@ const DISNEY = [
 ["Idina Menzel & AURORA","Into the Unknown",2019,"Frozen II"],["Idina Menzel","Show Yourself",2019,"Frozen II"],["Jonathan Groff","Lost in the Woods",2019,"Frozen II"],
 ["Encanto cast","We Don't Talk About Bruno",2021,"Encanto"],["Jessica Darrow","Surface Pressure",2021,"Encanto"],["Stephanie Beatriz","Waiting on a Miracle",2021,"Encanto"],["Encanto cast","The Family Madrigal",2021,"Encanto"],["Sebastián Yatra","Dos Oruguitas",2021,"Encanto"],
 ["Ariana DeBose","This Wish",2023,"Wish"],["Auliʻi Cravalho","Beyond",2024,"Moana 2"],
+["The Dwarfs & Adriana Caselotti","Whistle While You Work",1937,"Snow White"],["Dickie Jones","I've Got No Strings",1940,"Pinocchio"],["Betty Noyes","Baby Mine",1941,"Dumbo"],
+["Ilene Woods & Mike Douglas","So This Is Love",1950,"Cinderella"],["Bill Thompson","I'm Late",1951,"Alice in Wonderland"],["Sterling Holloway","Trust in Me",1967,"The Jungle Book"],
+["Phil Harris","Thomas O'Malley Cat",1970,"The Aristocats"],["Shelby Flint","Someone's Waiting for You",1977,"The Rescuers"],
+["Huey Lewis","Once Upon a Time in New York City",1988,"Oliver & Company"],["Billy Joel","Why Should I Worry?",1988,"Oliver & Company"],
+["René Auberjonois","Les Poissons",1989,"The Little Mermaid"],["David Ogden Stiers & Mel Gibson","Mine, Mine, Mine",1995,"Pocahontas"],["Randy Newman","Strange Things",1995,"Toy Story"],
+["Heidi Mollenhauer","God Help the Outcasts",1996,"The Hunchback of Notre Dame"],["Jason Alexander","Topsy Turvy",1996,"The Hunchback of Notre Dame"],
+["Beth Fowler & Marni Nixon","Honor to Us All",1998,"Mulan"],["Harvey Fierstein","A Girl Worth Fighting For",1998,"Mulan"],
+["Phil Collins","Son of Man",1999,"Tarzan"],["Rosie O'Donnell","Trashin' the Camp",1999,"Tarzan"],["Sarah McLachlan","When She Loved Me",1999,"Toy Story 2"],
+["John Goodman & Billy Crystal","If I Didn't Have You",2001,"Monsters, Inc."],["Mark Keali'i Ho'omalu","Hawaiian Roller Coaster Ride",2002,"Lilo & Stitch"],
+["Phil Collins","Look Through My Eyes",2003,"Brother Bear"],["Camille","Le Festin",2007,"Ratatouille"],["Jenifer Lewis","Dig a Little Deeper",2009,"The Princess and the Frog"],
+["Owl City","When Can I See You Again?",2012,"Wreck-It Ralph"],["Julie Fowlis","Touch the Sky",2012,"Brave"],
+["Opetaia Foa'i & Lin-Manuel Miranda","We Know the Way",2016,"Moana"],["Anthony Gonzalez","The World Es Mi Familia",2017,"Coco"],
+["Josh Gad & Kristen Bell","Some Things Never Change",2019,"Frozen II"],["Diane Guerrero & Stephanie Beatriz","What Else Can I Do?",2021,"Encanto"],
+["Dwayne Johnson","Can I Get a Chee Hoo?",2024,"Moana 2"]
+];
+
+// Artists who came out of Disney (Disney Channel, The Mickey Mouse Club, Disney movies)
+const DISNEY_STARS = [
 ["Britney Spears","...Baby One More Time",1998,"The Mickey Mouse Club"],["Christina Aguilera","Genie in a Bottle",1999,"The Mickey Mouse Club"],["*NSYNC","Bye Bye Bye",2000,"The Mickey Mouse Club"],
 ["Justin Timberlake","Cry Me a River",2002,"The Mickey Mouse Club"],["Justin Timberlake","SexyBack",2006,"The Mickey Mouse Club"],
 ["Hilary Duff","So Yesterday",2003,"Lizzie McGuire"],["Hilary Duff","Come Clean",2003,"Lizzie McGuire"],["Lindsay Lohan","Rumors",2004,"Disney films"],
@@ -428,7 +451,24 @@ const DISNEY = [
 ["Bridgit Mendler","Ready or Not",2012,"Good Luck Charlie"],["Bridgit Mendler","Hurricane",2013,"Good Luck Charlie"],
 ["Descendants cast","Rotten to the Core",2015,"Descendants"],["Descendants cast","Ways to Be Wicked",2017,"Descendants 2"],["Dove Cameron","Boyfriend",2022,"Liv and Maddie"],
 ["Sabrina Carpenter","Thumbs",2017,"Girl Meets World"],["Sabrina Carpenter","Nonsense",2022,"Girl Meets World"],["Sabrina Carpenter","Espresso",2024,"Girl Meets World"],["Sabrina Carpenter","Please Please Please",2024,"Girl Meets World"],
-["Olivia Rodrigo","All I Want",2019,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","drivers license",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","good 4 u",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","vampire",2023,"High School Musical: The Musical: The Series"]
+["Olivia Rodrigo","All I Want",2019,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","drivers license",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","good 4 u",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","vampire",2023,"High School Musical: The Musical: The Series"],
+["Olivia Rodrigo","deja vu",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","traitor",2021,"High School Musical: The Musical: The Series"],["Olivia Rodrigo","bad idea right?",2023,"High School Musical: The Musical: The Series"],
+["Miley Cyrus","Fly on the Wall",2008,"Hannah Montana"],["Miley Cyrus","Can't Be Tamed",2010,"Hannah Montana"],["Miley Cyrus","Midnight Sky",2020,"Hannah Montana"],["Miley Cyrus","Used to Be Young",2023,"Hannah Montana"],
+["Hannah Montana","Life's What You Make It",2007,"Hannah Montana"],["Hannah Montana","Rock Star",2007,"Hannah Montana"],["Hannah Montana","Ice Cream Freeze (Let's Chill)",2009,"Hannah Montana"],
+["Selena Gomez","Tell Me Something I Don't Know",2008,"Wizards of Waverly Place"],["Selena Gomez & the Scene","Falling Down",2009,"Wizards of Waverly Place"],["Selena Gomez & the Scene","Round & Round",2010,"Wizards of Waverly Place"],["Selena Gomez & the Scene","Hit the Lights",2011,"Wizards of Waverly Place"],
+["Selena Gomez","Same Old Love",2015,"Wizards of Waverly Place"],["Selena Gomez","Hands to Myself",2015,"Wizards of Waverly Place"],["Selena Gomez & Marshmello","Wolves",2017,"Wizards of Waverly Place"],["Selena Gomez","Single Soon",2023,"Wizards of Waverly Place"],
+["Demi Lovato","Don't Forget",2008,"Camp Rock"],["Demi Lovato","Give Your Heart a Break",2011,"Sonny with a Chance"],["Demi Lovato","Neon Lights",2013,"Sonny with a Chance"],["Demi Lovato","Confident",2015,"Sonny with a Chance"],
+["Jonas Brothers","When You Look Me in the Eyes",2008,"Disney Channel"],["Jonas Brothers","Paranoid",2009,"Disney Channel"],["Jonas Brothers","Only Human",2019,"Disney Channel"],["Jonas Brothers","Waffle House",2023,"Disney Channel"],["Nick Jonas","Jealous",2014,"Disney Channel"],
+["Sabrina Carpenter","Feather",2023,"Girl Meets World"],["Sabrina Carpenter","Taste",2024,"Girl Meets World"],["Sabrina Carpenter","Manchild",2025,"Girl Meets World"],
+["Zendaya","Something New",2016,"Shake It Up"],["Sofia Carson","Love Is the Name",2017,"Descendants"],["Descendants 2 cast","What's My Name",2017,"Descendants 2"],
+["Hilary Duff","Why Not",2003,"Lizzie McGuire"],["Hilary Duff","Wake Up",2005,"Lizzie McGuire"],["Hilary Duff","With Love",2007,"Lizzie McGuire"],
+["Vanessa Hudgens","Come Back to Me",2006,"High School Musical"],["Ashley Tisdale","Be Good to Me",2006,"High School Musical"],
+["Troy & Gabriella","Start of Something New",2006,"High School Musical"],["Sharpay","Gotta Go My Own Way",2007,"High School Musical 2"],["High School Musical cast","You Are the Music in Me",2007,"High School Musical 2"],
+["High School Musical cast","Now or Never",2008,"High School Musical 3"],["Ryan & Sharpay","I Want It All",2008,"High School Musical 3"],
+["Lindsay Lohan","Ultimate",2003,"Freaky Friday"],["The Cheetah Girls","Cheetah Sisters",2003,"The Cheetah Girls"],
+["Britney Spears","Oops!...I Did It Again",2000,"The Mickey Mouse Club"],["Britney Spears","Toxic",2003,"The Mickey Mouse Club"],
+["Christina Aguilera","Dirrty",2002,"The Mickey Mouse Club"],["Christina Aguilera","Beautiful",2002,"The Mickey Mouse Club"],
+["Justin Timberlake","CAN'T STOP THE FEELING!",2016,"The Mickey Mouse Club"],["*NSYNC","It's Gonna Be Me",2000,"The Mickey Mouse Club"]
 ];
 
 const kp = KPOP.map(([a,s,y,t])=>({a,s,y,t,x:""}));
@@ -439,7 +479,8 @@ const CATS = [
   {id:"eden",  name:"האהובות של עדן", range:"B.A.P · 2PM · FT Island · BEAST · B1A4 · Super Junior · DAY6, כל השנים", icon:"💜", color:"#C3A6FF", songs:kp.filter(x=>FAVS.includes(x.a))},
   {id:"anime", name:"פתיחות וסיומים של אנימה", range:"כל הזמנים", icon:"🌸", color:"#9BE88E", songs:ANIME.map(([a,s,y,x])=>({a,s,y,x}))},
   {id:"shonen", name:"אנימה שונן", range:"2015 עד היום", icon:"🔥", color:"#FF9A5C", songs:SHONEN.map(([a,s,y,x])=>({a,s,y,x}))},
-  {id:"disney", name:"דיסני", range:"סרטים מצוירים וכוכבי דיסני", icon:"🏰", color:"#7FE0F2", songs:DISNEY.map(([a,s,y,x])=>({a,s,y,x}))}
+  {id:"disneyFilms", name:"דיסני מצויר", range:"שירים מסרטי דיסני ופיקסאר", icon:"🏰", color:"#7FE0F2", songs:DISNEY_FILMS.map(([a,s,y,x])=>({a,s,y,x}))},
+  {id:"disneyStars", name:"כוכבי דיסני", range:"אמנים שיצאו מדיסני", icon:"⭐", color:"#FFE066", songs:DISNEY_STARS.map(([a,s,y,x])=>({a,s,y,x}))}
 ];
 
 const $=id=>document.getElementById(id);
@@ -568,17 +609,55 @@ async function sp(path,opts={}){
   if(!r.ok)throw {status:r.status,reason:d&&d.error&&d.error.reason};
   return d;
 }
-async function spFind(t){
-  const key="sp-uri:"+t.a+"|"+t.s;const c=ls.get(key);if(c)return c;
+const spNorm=x=>(x||"").toLowerCase().normalize("NFKD").replace(/[^a-z0-9\u3040-\u30ff\u4e00-\u9fff\uac00-\ud7af]/g,"");
+function spArtistOk(item,t){
+  const want=t.a.split(/,| feat\. | & | × |:/).map(spNorm).filter(Boolean);
+  return item.artists.some(ar=>{const n=spNorm(ar.name);return n&&want.some(w=>n.includes(w)||w.includes(n))});
+}
+async function spSearch(t){
   const clean=x=>x.replace(/["']/g,"");
   const mainArtist=t.a.split(/,| feat\. | & | × /)[0];
-  const qs=[`track:${clean(t.s)} artist:${clean(mainArtist)}`,`${t.a} ${t.s}`,`${mainArtist} ${t.s}`];
+  const qs=[`track:${clean(t.s)} artist:${clean(mainArtist)}`,`${mainArtist} ${t.s}`,`${t.s}`];
+  let first=null;
   for(const q of qs){
-    const d=await sp("/search?type=track&limit=1&q="+encodeURIComponent(q));
-    const it=d&&d.tracks&&d.tracks.items&&d.tracks.items[0];
-    if(it){ls.set(key,it.uri);return it.uri}
+    const d=await sp("/search?type=track&limit=5&q="+encodeURIComponent(q));
+    const items=(d&&d.tracks&&d.tracks.items)||[];
+    const hit=items.find(it=>spArtistOk(it,t));
+    if(hit)return {item:hit,exact:true};
+    if(!first&&items[0])first=items[0];
   }
+  return first?{item:first,exact:false}:null;
+}
+async function spFind(t){
+  const key="sp-uri2:"+t.a+"|"+t.s;const c=ls.get(key);if(c)return c;
+  const r=await spSearch(t);
+  if(r){ls.set(key,r.item.uri);return r.item.uri}
   return null;
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function spCheckAll(){
+  if(!confirm("לבדוק את כל השירים מול ספוטיפיי? זה לוקח כמה דקות."))return;
+  const seen=new Set(),all=[];
+  CATS.forEach(c=>c.songs.forEach(t=>{const k=t.a+"|"+t.s;if(!seen.has(k)){seen.add(k);all.push(t)}}));
+  const missing=[],diff=[];
+  for(let n=0;n<all.length;n++){
+    const t=all[n];
+    spStatus(`בודק ${n+1} מתוך ${all.length}…`);
+    let r=null;
+    for(let tries=0;tries<4;tries++){
+      try{r=await spSearch(t);break}
+      catch(e){if(e.status===429){await sleep(5000)}else if(e.status===401){spStatus("צריך להתחבר שוב לספוטיפיי.");return}else break}
+    }
+    if(!r)missing.push(`${t.a} – ${t.s} (${t.y})`);
+    else{
+      ls.set("sp-uri2:"+t.a+"|"+t.s,r.item.uri);
+      if(!r.exact)diff.push(`${t.a} – ${t.s} (${t.y})  →  בספוטיפיי: ${r.item.artists.map(a=>a.name).join(", ")} – ${r.item.name}`);
+    }
+    await sleep(120);
+  }
+  const out=[`נבדקו ${all.length} שירים.`,"",`לא נמצאו (${missing.length}):`,...missing,"",`נמצאו אצל אמן אחר, כדאי לוודא (${diff.length}):`,...diff].join("\n");
+  $("checkOut").value=out;$("checkPanel").hidden=false;
+  spStatus(missing.length||diff.length?"הבדיקה הסתיימה. העתיקו את הרשימה ושלחו אותה לתיקון.":"הבדיקה הסתיימה: כל השירים נמצאו.");
 }
 async function spPlay(t){
   spStatus("מחפש את השיר…");
@@ -605,10 +684,12 @@ async function spPause(){
 function spStatus(msg,showLink){const el=$("spStatus");el.textContent=msg||"";el.hidden=!msg;$("spFallback").hidden=!showLink}
 function spUI(){
   const on=!!spTok();
-  $("spConnect").hidden=on;$("spLogout").hidden=!on;$("copy").hidden=on;
+  $("spConnect").hidden=on;$("spLogout").hidden=!on;$("copy").hidden=on;$("spCheck").hidden=!on;
   $("playLabel").textContent=on?(card.classList.contains("playing")?"עצור":"נגן"):"נגן בספוטיפיי";
 }
 $("spConnect").onclick=spLogin;
+$("spCheck").onclick=spCheckAll;
+$("checkCopy").onclick=async()=>{const v=$("checkOut").value;try{await navigator.clipboard.writeText(v)}catch(e){$("checkOut").select();document.execCommand("copy")}$("checkCopy").textContent="הועתק"};
 $("spLogout").onclick=()=>{ls.del("sp-token");spStatus("");spUI()};
 
 let swiped=false;
