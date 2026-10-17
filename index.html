@@ -41,6 +41,9 @@ body{
   -webkit-tap-highlight-color:transparent;
 }
 header{width:100%;max-width:440px;padding:18px 20px 6px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:52px;height:52px;border-radius:14px;flex:none;box-shadow:0 4px 14px rgba(26,11,38,.25);transition:width .25s,height .25s}
+body.on-menu .logo{width:72px;height:72px;border-radius:18px}
 h1{font-family:"Secular One","Rubik",sans-serif;font-weight:400;font-size:1.6rem;line-height:1.1;margin:0}
 h1 small{display:block;font-family:"Rubik",sans-serif;font-size:.85rem;color:var(--muted);font-weight:500;margin-top:2px}
 .count{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500;white-space:nowrap}
@@ -117,7 +120,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offse
 </head>
 <body>
 <header>
-  <h1 id="title">היטסטר<small id="sub">בחרו קטגוריה</small></h1>
+  <div class="brand">
+    <img src="/icons/icon.svg" alt="" class="logo" id="logo" width="52" height="52">
+    <h1 id="title">היטסטר<small id="sub">בחרו קטגוריה</small></h1>
+  </div>
   <div class="count" id="count"></div>
 </header>
 <main>
@@ -462,12 +468,12 @@ function buildMenu(){
   });
 }
 function showMenu(){
-  cat=null;$("menu").hidden=false;$("game").hidden=true;
+  cat=null;$("menu").hidden=false;$("game").hidden=true;document.body.classList.add("on-menu");
   $("title").firstChild.textContent="היטסטר";$("sub").textContent="בחרו קטגוריה";$("count").textContent="";
   try{localStorage.removeItem("kh-last")}catch(e){}
 }
 function open(c){
-  cat=c;$("menu").hidden=true;$("game").hidden=false;
+  cat=c;$("menu").hidden=true;$("game").hidden=false;document.body.classList.remove("on-menu");
   $("title").firstChild.textContent=c.name;$("sub").textContent=c.range;
   card.style.setProperty("--disc",c.color);
   try{localStorage.setItem("kh-last",c.id)}catch(e){}
