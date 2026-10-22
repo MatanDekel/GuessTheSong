@@ -658,7 +658,7 @@ async function sp(path,opts={}){
   const r=await fetch("https://api.spotify.com/v1"+path,{...opts,headers:{Authorization:"Bearer "+a,"Content-Type":"application/json"}});
   if(r.status===204||r.status===202)return null;
   const d=await r.json().catch(()=>null);
-  if(!r.ok)throw {status:r.status,reason:d&&d.error&&d.error.reason,retry:+r.headers.get("Retry-After")||0};
+  if(!r.ok)throw {status:r.status,reason:(d&&d.error&&(d.error.reason||d.error.message))||"",retry:+r.headers.get("Retry-After")||0,where:path.split("?")[0]};
   return d;
 }
 const spNorm=x=>(x||"").toLowerCase().normalize("NFKD").replace(/[^a-z0-9\u3040-\u30ff\u4e00-\u9fff\uac00-\ud7af]/g,"");
@@ -672,7 +672,7 @@ async function spSearch(t){
   const qs=[`track:${clean(t.s)} artist:${clean(mainArtist)}`,`${mainArtist} ${t.s}`,`${t.s}`];
   let first=null;
   for(const q of qs){
-    const d=await sp("/search?type=track&limit=5&market=from_token&q="+encodeURIComponent(q));
+    const d=await sp("/search?type=track&limit=5&q="+encodeURIComponent(q));
     const items=(d&&d.tracks&&d.tracks.items)||[];
     const hit=items.find(it=>spArtistOk(it,t));
     if(hit)return {item:hit,exact:true};
@@ -781,7 +781,7 @@ $("play").addEventListener("click",async e=>{
   try{await spPlay(cat.songs[deck[i]])}
   catch(err){
     if(err.status===429)spStatus("ספוטיפיי הגבילו זמנית את מספר הבקשות מהאתר."+(err.retry?" נסו שוב בעוד "+Math.ceil(err.retry/60)+" דקות.":" נסו שוב מאוחר יותר."),true);
-    else if(err.status===403)spStatus("ספוטיפיי חסמו את הניגון: צריך חשבון Premium, והמשתמש צריך להיות רשום ב־User Management של האפליקציה.",true);
+    else if(err.status===403)spStatus("ספוטיפיי חסמו את הבקשה ("+(err.where||"")+(err.reason?": "+err.reason:"")+"). אם זה ממשיך: לוודא Premium ורישום ב־User Management.",true);
     else if(err.status===401){ls.del("sp-token");spUI();spStatus("צריך להתחבר שוב לספוטיפיי.")}
     else spStatus("הניגון לא הצליח (שגיאה "+(err.status||"?")+(err.reason?" "+err.reason:"")+").",true);
   }
