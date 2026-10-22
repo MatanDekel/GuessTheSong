@@ -827,24 +827,29 @@ async function embedPlay(t){
   $("spFallback").href="https://open.spotify.com/track/"+uri.split(":").pop();
   $("embedWrap").hidden=false;
   const api=await embedApi();
-  embedPlaying=false;
-  if(!embedCtl){
-    await new Promise(res=>api.createController($("embedSlot"),{uri,width:"100%",height:80},ctl=>{
+  // build a fresh player for every song: reusing one (loadUri) is what broke playback after "next"
+  try{embedCtl&&embedCtl.destroy()}catch(e){}
+  embedCtl=null;embedPlaying=false;
+  const slot=document.createElement("div");
+  $("embedWrap").querySelectorAll("iframe,#embedSlot").forEach(n=>n.remove());
+  slot.id="embedSlot";$("embedWrap").prepend(slot);
+  const myCard=deck[i];
+  await new Promise(res=>{
+    api.createController(slot,{uri,width:"100%",height:80},ctl=>{
       embedCtl=ctl;
       ctl.addListener("playback_update",e=>{
+        if(deck[i]!==myCard)return;
         embedPlaying=!e.data.isPaused;
         if(embedPlaying){card.classList.add("playing");$("playLabel").textContent="עצור";spStatus("")}
       });
       ctl.addListener("ready",()=>res());
-      setTimeout(res,2500);
-    }));
-  }else{
-    embedCtl.loadUri(uri);
-    await sleep(700);
-  }
-  try{embedCtl.play()}catch(e){}
+    });
+    setTimeout(res,3000);
+  });
+  if(deck[i]!==myCard)return;
+  try{embedCtl&&embedCtl.play()}catch(e){}
   await sleep(1800);
-  if(!embedPlaying)spStatus("הדפדפן חוסם ניגון אוטומטי. לחצו על כפתור הניגון הירוק בנגן שלמעלה.");
+  if(deck[i]===myCard&&!embedPlaying)spStatus("הדפדפן לא נתן לשיר להתחיל לבד. לחצו פעם אחת על ▶ הירוק בנגן הקטן שמעל ההודעה.");
 }
 function embedPause(){try{embedCtl&&embedCtl.pause()}catch(e){}embedPlaying=false;card.classList.remove("playing");$("playLabel").textContent="נגן"}
 function spModeUI(){$("spMode").textContent=spMode()==="web"?"ניגון: באתר (לחצו למעבר לאפליקציית ספוטיפיי)":"ניגון: באפליקציית ספוטיפיי (לחצו למעבר לניגון באתר)"}
