@@ -722,48 +722,54 @@ async function spPlay(t){
   const dev=devs.find(x=>x.type==="Smartphone"&&x.is_active)||devs.find(x=>x.type==="Smartphone")||devs.find(x=>x.is_active)||devs[0];
   if(!dev){spStatus("ספוטיפיי לא פתוח באף מכשיר. פתחו את אפליקציית ספוטיפיי בטלפון, הפעילו שיר כלשהו לשנייה, וחזרו לכאן.",true);return}
   const body=JSON.stringify({uris:[uri]});
-  const playOn=()=>sp("/me/player/play?device_id="+encodeURIComponent(dev.id),{method:"PUT",body});
   const check=async()=>{
     try{
       const st=await sp("/me/player");
       if(!st)return {ok:false,why:"ספוטיפיי מדווח שאין ניגון פעיל"};
       const it=st.item||{};
-      const same=it.uri===uri||(it.linked_from&&it.linked_from.uri===uri)||spNorm(it.name)===spNorm(t.s);
+      const same=it.uri===uri||spNorm(it.name)===spNorm(t.s);
       if(st.is_playing&&same)return {ok:true};
       if(st.is_playing)return {ok:false,why:"מתנגן שיר אחר: "+(it.name||"?")};
       return {ok:false,why:"השיר נטען אבל מושהה"+(st.device?" ב־"+st.device.name:"")};
     }catch(e){return {ok:false,why:"שגיאה "+e.status+(e.reason?" ("+e.reason+")":""),err:e}}
   };
-  try{await playOn()}
-  catch(e){
-    if(e.status!==404)throw e;
-    // the device went to sleep or its id changed: wake it with a transfer, then try once more
-    try{await sp("/me/player",{method:"PUT",body:JSON.stringify({device_ids:[dev.id],play:false})})}catch(e2){}
-    await sleep(800);
-    try{await playOn()}
-    catch(e3){
-      if(e3.status===404){spStatus("ספוטיפיי לא מוצא את ה"+dev.name+" (404). פתחו את אפליקציית ספוטיפיי בטלפון, נגנו משהו לשנייה, חזרו ונסו שוב.",true);return}
-      throw e3;
+  const transfer=async()=>{try{await sp("/me/player",{method:"PUT",body:JSON.stringify({device_ids:[dev.id],play:false})})}catch(e){}};
+  // Spotify's play endpoint is flaky (404 / 502 / 503 even when the device is fine), so retry a few times
+  let lastErr=null;
+  for(let a=0;a<4;a++){
+    try{await sp("/me/player/play?device_id="+encodeURIComponent(dev.id),{method:"PUT",body});lastErr=null;break}
+    catch(e){
+      lastErr=e;
+      if(![404,500,502,503,504].includes(e.status))throw e;
+      spStatus("ספוטיפיי מתעכב, מנסה שוב…");
+      await sleep(1200);
+      if((await check()).ok){lastErr=null;break}   // a 5xx sometimes still starts the song
+      if(a===1)await transfer();
+      await sleep(600*(a+1));
     }
+  }
+  if(lastErr){
+    if(lastErr.status===404)spStatus("ספוטיפיי לא מוצא את ה"+dev.name+" (404). פתחו את אפליקציית ספוטיפיי, נגנו משהו לשנייה, חזרו ונסו שוב.",true);
+    else spStatus("ספוטיפיי לא מגיבים כרגע (שגיאה "+lastErr.status+"). נסו שוב בעוד רגע, או פתחו את השיר ידנית.",true);
+    return;
   }
   card.classList.add("playing");
   $("playLabel").textContent="עצור";
   spStatus("מנגן ב־"+dev.name);
   const myCard=deck[i];
-  // a sleeping app sometimes ignores the first command, so check and retry once before giving up
   await sleep(2500);
   if(deck[i]!==myCard||!card.classList.contains("playing"))return;
-  if((await check()).ok)return;
-  try{await sp("/me/player",{method:"PUT",body:JSON.stringify({device_ids:[dev.id],play:false})})}catch(e){}
-  await sleep(600);
-  try{await playOn()}catch(e){}
+  let c=await check();
+  if(c.ok)return;
+  await transfer();await sleep(600);
+  try{await sp("/me/player/play?device_id="+encodeURIComponent(dev.id),{method:"PUT",body})}catch(e){}
   await sleep(2500);
   if(deck[i]!==myCard||!card.classList.contains("playing"))return;
-  const c2=await check();
-  if(c2.ok)return;
+  c=await check();
+  if(c.ok)return;
   card.classList.remove("playing");$("playLabel").textContent="נגן";
-  if(c2.err&&c2.err.status===429){spStatus("ספוטיפיי הגבילו זמנית את מספר הבקשות מהאתר."+(c2.err.retry?" נסו שוב בעוד "+Math.ceil(c2.err.retry/60)+" דקות.":" נסו שוב מאוחר יותר."),true);return}
-  spStatus("לא מתנגן ("+c2.why+"). "+"ה"+dev.name+" הקפיא את ספוטיפיי ברקע. פתחו את השיר בספוטיפיי, לחצו עליו פעם אחת וחזרו לכאן. מהשיר הבא זה יעבוד ברקע.",true);
+  if(c.err&&c.err.status===429){spStatus("ספוטיפיי הגבילו זמנית את מספר הבקשות מהאתר."+(c.err.retry?" נסו שוב בעוד "+Math.ceil(c.err.retry/60)+" דקות.":" נסו שוב מאוחר יותר."),true);return}
+  spStatus("לא מתנגן ("+c.why+"). פתחו את השיר בספוטיפיי, לחצו עליו פעם אחת וחזרו לכאן.",true);
 }
 async function spPause(){
   try{await sp("/me/player/pause",{method:"PUT"})}catch(e){}
