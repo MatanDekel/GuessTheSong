@@ -715,19 +715,22 @@ async function spPlay(t){
   spStatus("מחפש את השיר…");
   const uri=await spFind(t);
   if(!uri){spStatus("לא מצאתי את השיר בספוטיפיי.",true);return}
-  const body=JSON.stringify({uris:[uri]});
-  try{await sp("/me/player/play",{method:"PUT",body})}
-  catch(e){
-    if(e.status!==404)throw e;
-    const d=await sp("/me/player/devices");
-    const devs=(d&&d.devices)||[];
-    const dev=devs.find(x=>x.type==="Smartphone")||devs[0];
-    if(!dev){spStatus("ספוטיפיי לא פעיל באף מכשיר. פתחו את האפליקציה, הפעילו משהו לשנייה וחזרו לכאן.",true);return}
-    await sp("/me/player/play?device_id="+dev.id,{method:"PUT",body});
-  }
+  // always pick the device explicitly, so the song never starts on a laptop or speaker by mistake
+  const d=await sp("/me/player/devices");
+  const devs=((d&&d.devices)||[]).filter(x=>!x.is_restricted);
+  const dev=devs.find(x=>x.type==="Smartphone"&&x.is_active)||devs.find(x=>x.type==="Smartphone")||devs.find(x=>x.is_active)||devs[0];
+  if(!dev){spStatus("ספוטיפיי לא פתוח באף מכשיר. פתחו את אפליקציית ספוטיפיי בטלפון, הפעילו שיר כלשהו לשנייה, וחזרו לכאן.",true);return}
+  await sp("/me/player/play?device_id="+encodeURIComponent(dev.id),{method:"PUT",body:JSON.stringify({uris:[uri]})});
   card.classList.add("playing");
   $("playLabel").textContent="עצור";
-  spStatus("");
+  spStatus("מנגן ב־"+dev.name);
+  setTimeout(async()=>{
+    if(!card.classList.contains("playing"))return;
+    try{
+      const st=await sp("/me/player");
+      if(!st||!st.is_playing)spStatus("ספוטיפיי קיבל את הבקשה אבל לא מנגן ב־"+dev.name+". פתחו את ספוטיפיי במכשיר הזה ונסו שוב.",true);
+    }catch(e){}
+  },3000);
 }
 async function spPause(){
   try{await sp("/me/player/pause",{method:"PUT"})}catch(e){}
