@@ -163,6 +163,10 @@ body.on-menu .spbar{display:block}
       <span id="playLabel">נגן בספוטיפיי</span>
     </a>
     <p class="hint status" id="spStatus" hidden></p>
+    <button class="spbtn" id="spWake" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.5 9.2c3.6-1.1 7.6-.8 11 1M7.2 12.3c3-.9 6.3-.6 9.1.9M7.9 15.2c2.4-.6 4.9-.4 7.1.7" stroke="#0B2414" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+      פתח את ספוטיפיי וחזור לכאן
+    </button>
     <a class="link" id="spFallback" href="https://open.spotify.com" target="_blank" rel="noopener noreferrer" hidden style="text-align:center">פתח את השיר בספוטיפיי</a>
 
     <div class="row">
@@ -720,7 +724,7 @@ async function spPlay(t){
   const d=await sp("/me/player/devices");
   const devs=((d&&d.devices)||[]).filter(x=>!x.is_restricted);
   const dev=devs.find(x=>x.type==="Smartphone"&&x.is_active)||devs.find(x=>x.type==="Smartphone")||devs.find(x=>x.is_active)||devs[0];
-  if(!dev){spStatus("ספוטיפיי לא פתוח באף מכשיר. פתחו את אפליקציית ספוטיפיי בטלפון, הפעילו שיר כלשהו לשנייה, וחזרו לכאן.",true);return}
+  if(!dev){spStatus("ספוטיפיי לא פתוח באף מכשיר. לחצו על הכפתור, ספוטיפיי ייפתח, וכשתחזרו לכאן השיר יתחיל לבד.",false,true);return}
   const body=JSON.stringify({uris:[uri]});
   const check=async()=>{
     try{
@@ -749,8 +753,8 @@ async function spPlay(t){
     }
   }
   if(lastErr){
-    if(lastErr.status===404)spStatus("ספוטיפיי לא מוצא את ה"+dev.name+" (404). פתחו את אפליקציית ספוטיפיי, נגנו משהו לשנייה, חזרו ונסו שוב.",true);
-    else spStatus("ספוטיפיי לא מגיבים כרגע (שגיאה "+lastErr.status+"). נסו שוב בעוד רגע, או פתחו את השיר ידנית.",true);
+    if(lastErr.status===404)spStatus("ספוטיפיי ישן ב־"+dev.name+". לחצו על הכפתור, ספוטיפיי ייפתח, וכשתחזרו לכאן השיר יתחיל לבד.",false,true);
+    else spStatus("ספוטיפיי לא מגיבים כרגע (שגיאה "+lastErr.status+"). אפשר לפתוח את ספוטיפיי ולחזור, השיר יתחיל לבד.",true,true);
     return;
   }
   card.classList.add("playing");
@@ -769,19 +773,28 @@ async function spPlay(t){
   if(c.ok)return;
   card.classList.remove("playing");$("playLabel").textContent="נגן";
   if(c.err&&c.err.status===429){spStatus("ספוטיפיי הגבילו זמנית את מספר הבקשות מהאתר."+(c.err.retry?" נסו שוב בעוד "+Math.ceil(c.err.retry/60)+" דקות.":" נסו שוב מאוחר יותר."),true);return}
-  spStatus("לא מתנגן ("+c.why+"). פתחו את השיר בספוטיפיי, לחצו עליו פעם אחת וחזרו לכאן.",true);
+  spStatus("לא מתנגן ("+c.why+"). לחצו על הכפתור, ספוטיפיי ייפתח, וכשתחזרו לכאן השיר יתחיל לבד.",true,true);
 }
 async function spPause(){
   try{await sp("/me/player/pause",{method:"PUT"})}catch(e){}
   card.classList.remove("playing");$("playLabel").textContent="נגן";
 }
-function spStatus(msg,showLink){const el=$("spStatus");el.textContent=msg||"";el.hidden=!msg;$("spFallback").hidden=!showLink}
+function spStatus(msg,showLink,showWake){const el=$("spStatus");el.textContent=msg||"";el.hidden=!msg;$("spFallback").hidden=!showLink;$("spWake").hidden=!showWake}
+// open the Spotify app once (wakes it up as a playback device), then retry automatically when the user comes back
+let spPending=false;
+function spWake(){spPending=true;spStatus("אחרי שספוטיפיי נפתח, פשוט חזרו לכאן. השיר יתחיל לבד.");location.href="spotify:";}
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState!=="visible"||!spPending||!cat)return;
+  spPending=false;
+  card.classList.remove("playing");
+  setTimeout(()=>{spPlay(cat.songs[deck[i]]).catch(err=>spStatus("הניגון לא הצליח (שגיאה "+(err.status||"?")+").",true,true))},900);
+});
 function spUI(){
   const on=!!spTok();
   $("spConnect").hidden=on;$("spConnect2").hidden=on;$("spOn").hidden=!on;$("spLogout").hidden=!on;$("copy").hidden=on;$("spCheck").hidden=!on;
   $("playLabel").textContent=on?(card.classList.contains("playing")?"עצור":"נגן"):"נגן בספוטיפיי";
 }
-$("spConnect").onclick=spLogin;$("spConnect2").onclick=spLogin;
+$("spConnect").onclick=spLogin;$("spWake").onclick=spWake;$("spConnect2").onclick=spLogin;
 $("spLogout2").onclick=()=>{ls.del("sp-token");spStatus("");spUI()};
 $("spCheck").onclick=spCheckAll;
 $("checkCopy").onclick=async()=>{const v=$("checkOut").value;try{await navigator.clipboard.writeText(v)}catch(e){$("checkOut").select();document.execCommand("copy")}$("checkCopy").textContent="הועתק"};
