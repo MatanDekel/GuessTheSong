@@ -734,7 +734,18 @@ async function spPlay(t){
       return {ok:false,why:"השיר נטען אבל מושהה"+(st.device?" ב־"+st.device.name:"")};
     }catch(e){return {ok:false,why:"שגיאה "+e.status+(e.reason?" ("+e.reason+")":""),err:e}}
   };
-  await playOn();
+  try{await playOn()}
+  catch(e){
+    if(e.status!==404)throw e;
+    // the device went to sleep or its id changed: wake it with a transfer, then try once more
+    try{await sp("/me/player",{method:"PUT",body:JSON.stringify({device_ids:[dev.id],play:false})})}catch(e2){}
+    await sleep(800);
+    try{await playOn()}
+    catch(e3){
+      if(e3.status===404){spStatus("ספוטיפיי לא מוצא את ה"+dev.name+" (404). פתחו את אפליקציית ספוטיפיי בטלפון, נגנו משהו לשנייה, חזרו ונסו שוב.",true);return}
+      throw e3;
+    }
+  }
   card.classList.add("playing");
   $("playLabel").textContent="עצור";
   spStatus("מנגן ב־"+dev.name);
