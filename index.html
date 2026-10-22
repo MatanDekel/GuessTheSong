@@ -843,13 +843,13 @@ async function prepareEmbed(t){
     clearTimeout(timer);
     if(seq!==embedSeq){try{ctl.destroy()}catch(e){}return}
     embedCtl=ctl;
-    $("embedMask").textContent="לחצו על ▶ שמשמאל כדי לנגן ←";
+    $("embedMask").textContent="לחצו על ▶ מימין כדי לנגן →";
     ctl.addListener("playback_update",e=>{
       if(seq!==embedSeq)return;
       const d=e.data||{};
       embedPlaying=!d.isPaused&&!d.isBuffering&&d.position>0;
       card.classList.toggle("playing",embedPlaying);
-      $("embedMask").textContent=embedPlaying?"🎵 מתנגן…":"לחצו על ▶ שמשמאל כדי לנגן ←";
+      $("embedMask").textContent=embedPlaying?"🎵 מתנגן…":"לחצו על ▶ מימין כדי לנגן →";
     });
   });
 }
