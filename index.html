@@ -739,7 +739,7 @@ async function spPlay(t){
   const devs=((d&&d.devices)||[]).filter(x=>!x.is_restricted);
   const dev=devs.find(x=>x.type==="Smartphone"&&x.is_active)||devs.find(x=>x.type==="Smartphone")||devs.find(x=>x.is_active)||devs[0];
   if(!dev){spStatus("ספוטיפיי לא פתוח באף מכשיר. לחצו על הכפתור, ספוטיפיי ייפתח, וכשתחזרו לכאן השיר יתחיל לבד.",false,true);return}
-  const body=JSON.stringify({uris:[uri]});
+  const body=JSON.stringify({uris:[uri],position_ms:0});
   const check=async()=>{
     try{
       const st=await sp("/me/player");
@@ -843,10 +843,13 @@ async function prepareEmbed(t){
     clearTimeout(timer);
     if(seq!==embedSeq){try{ctl.destroy()}catch(e){}return}
     embedCtl=ctl;
+    let rewound=false;
     $("embedMask").textContent="לחצו על ▶ מימין כדי לנגן →";
     ctl.addListener("playback_update",e=>{
       if(seq!==embedSeq)return;
       const d=e.data||{};
+      if(!rewound&&!d.isPaused&&d.duration>45000&&d.position>2000){rewound=true;try{ctl.seek(0)}catch(err){}}
+      if(!d.isPaused&&d.position>0)rewound=true;
       embedPlaying=!d.isPaused&&!d.isBuffering&&d.position>0;
       card.classList.toggle("playing",embedPlaying);
       $("embedMask").textContent=embedPlaying?"🎵 מתנגן…":"לחצו על ▶ מימין כדי לנגן →";
