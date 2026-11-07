@@ -860,10 +860,17 @@ const DISNEY_STARS = [
 ];
 
 const kp = KPOP.map(([a,s,y,t])=>({a,s,y,t,x:""}));
+// groups only (no soloists), K-pop 2008–2015 from both K-pop decks, without YG Entertainment acts
+const YG_ACTS=["BIGBANG","2NE1","WINNER","iKON","G-DRAGON","TAEYANG","GD&TOP","AKMU","Lee Hi","Epik High","Sechs Kies","BLACKPINK","TREASURE"];
+const KPOP2_SOLO=["Zion.T","Jay Park","K.Will","Lee Hi","Roy Kim","Ailee","Baek Ji Young","IU","Lee Hyori","Son Dam Bi","Gain","HyunA","TAEYEON","ZICO"];
+const GROUPS_NO_YG=KPOP.filter(([a,s,y,t])=>(t==="b"||t==="g")&&!YG_ACTS.includes(a)).map(([a,s,y])=>({a,s,y,x:""}))
+  .concat(KPOP2.filter(([a])=>!KPOP2_SOLO.includes(a)&&!YG_ACTS.includes(a)).map(([a,s,y])=>({a,s,y,x:""})));
+
 const CATS = [
   {id:"boys",  name:"להקות בנים",   range:"2008–2015", icon:"🕺", color:"#7FE0F2", songs:kp.filter(x=>x.t==="b")},
   {id:"girls", name:"להקות בנות",   range:"2008–2015", icon:"💃", color:"#FF8FB8", songs:kp.filter(x=>x.t==="g")},
   {id:"mixed", name:"מעורבב",       range:"2008–2015", icon:"🎤", color:"#FFC93C", songs:kp.filter(x=>x.t!=="x")},
+  {id:"groupsNoYG", name:"להקות מעורבב · בלי YG", range:"להקות בנים ובנות 2008–2015, בלי להקות של YG", icon:"🎶", color:"#7FE0F2", songs:GROUPS_NO_YG},
   {id:"kpop2", name:"קייפופ · חפיסה 2", range:"2008–2015 · שירים שאין בקטגוריות האחרות", icon:"✨", color:"#FF8FB8", songs:KPOP2.map(([a,s,y])=>({a,s,y,x:""}))},
   {id:"eden",  name:"האהובות של עדן", range:"B.A.P · 2PM · FT Island · BEAST · B1A4 · Super Junior · DAY6, כל השנים", icon:"💜", color:"#C3A6FF", songs:kp.filter(x=>FAVS.includes(x.a))},
   {id:"anime", name:"פתיחות וסיומים של אנימה", range:"כל הזמנים", icon:"🌸", color:"#9BE88E", songs:ANIME.map(([a,s,y,x])=>({a,s,y,x}))},
