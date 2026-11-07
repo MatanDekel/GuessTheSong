@@ -242,6 +242,13 @@ const KPOP = [
 ["DAY6","Letting Go",2016,"x"],["DAY6","I Wait",2017,"x"],["DAY6","You Were Beautiful",2017,"x"],["DAY6","Dance Dance",2017,"x"],
 ["DAY6","Shoot Me",2018,"x"],["DAY6","Days Gone By",2018,"x"],["DAY6","Sweet Chaos",2019,"x"],["DAY6","Time of Our Life",2019,"x"],["DAY6","Zombie",2020,"x"],
 ["DAY6","Welcome to the Show",2024,"x"],["DAY6","HAPPY",2024,"x"],["DAY6","Melt Down",2024,"x"],
+["TWICE","CHEER UP",2016,"x"],["TWICE","TT",2016,"x"],["TWICE","KNOCK KNOCK",2017,"x"],["TWICE","SIGNAL",2017,"x"],["TWICE","LIKEY",2017,"x"],["TWICE","Heart Shaker",2017,"x"],
+["TWICE","What is Love?",2018,"x"],["TWICE","Dance The Night Away",2018,"x"],["TWICE","YES or YES",2018,"x"],["TWICE","FANCY",2019,"x"],["TWICE","Feel Special",2019,"x"],
+["TWICE","MORE & MORE",2020,"x"],["TWICE","I CAN'T STOP ME",2020,"x"],["TWICE","Alcohol-Free",2021,"x"],["TWICE","SCIENTIST",2021,"x"],["TWICE","Talk that Talk",2022,"x"],
+["TWICE","SET ME FREE",2023,"x"],["TWICE","ONE SPARK",2024,"x"],["TWICE","Strategy",2024,"x"],
+["GFRIEND","Rough",2016,"x"],["GFRIEND","Navillera",2016,"x"],["GFRIEND","Fingertip",2017,"x"],["GFRIEND","Love Whisper",2017,"x"],["GFRIEND","Summer Rain",2017,"x"],
+["GFRIEND","Time for the Moon Night",2018,"x"],["GFRIEND","Sunrise",2019,"x"],["GFRIEND","Fever",2019,"x"],["GFRIEND","Crossroads",2020,"x"],["GFRIEND","Apple",2020,"x"],
+["GFRIEND","MAGO",2020,"x"],["GFRIEND","Season of Memories",2025,"x"],
 ["B.A.P","Skydive",2016,"x"],["B.A.P","Wake Me Up",2017,"x"],["B.A.P","Honeymoon",2017,"x"],
 // girl groups
 ["Wonder Girls","Nobody",2008,"g"],["Wonder Girls","So Hot",2008,"g"],["Wonder Girls","2 Different Tears",2010,"g"],["Wonder Girls","Be My Baby",2011,"g"],["Wonder Girls","Like This",2012,"g"],["Wonder Girls","I Feel You",2015,"g"],
@@ -380,7 +387,7 @@ const KPOP2 = [
 ["MONSTA X","Trespass",2015]
 ];
 
-const FAVS = ["B.A.P","2PM","FT Island","BEAST","B1A4","Super Junior","DAY6",
+const FAVS = ["B.A.P","2PM","FT Island","BEAST","B1A4","Super Junior","DAY6","TWICE","GFRIEND",
   "Super Junior-H","Super Junior-M","Super Junior-T","Super Junior-D&E","Kyuhyun","Yesung","Ryeowook","Henry",
   "Jang Wooyoung","Lee Hongki","Highlight","Yang Yoseob","Trouble Maker"];
 
@@ -872,7 +879,7 @@ const CATS = [
   {id:"mixed", name:"מעורבב",       range:"2008–2015", icon:"🎤", color:"#FFC93C", songs:kp.filter(x=>x.t!=="x")},
   {id:"groupsNoYG", name:"להקות מעורבב · בלי YG", range:"להקות בנים ובנות 2008–2015, בלי להקות של YG", icon:"🎶", color:"#7FE0F2", songs:GROUPS_NO_YG},
   {id:"kpop2", name:"קייפופ · חפיסה 2", range:"2008–2015 · שירים שאין בקטגוריות האחרות", icon:"✨", color:"#FF8FB8", songs:KPOP2.map(([a,s,y])=>({a,s,y,x:""}))},
-  {id:"eden",  name:"האהובות של עדן", range:"B.A.P · 2PM · FT Island · BEAST · B1A4 · Super Junior · DAY6, כל השנים", icon:"💜", color:"#C3A6FF", songs:kp.filter(x=>FAVS.includes(x.a))},
+  {id:"eden",  name:"האהובות של עדן", range:"B.A.P · 2PM · FT Island · BEAST · B1A4 · Super Junior · DAY6 · TWICE · GFRIEND, כל השנים", icon:"💜", color:"#C3A6FF", songs:kp.filter(x=>FAVS.includes(x.a))},
   {id:"anime", name:"פתיחות וסיומים של אנימה", range:"כל הזמנים", icon:"🌸", color:"#9BE88E", songs:ANIME.map(([a,s,y,x])=>({a,s,y,x}))},
   {id:"shonen", name:"אנימה שונן", range:"2015 עד היום", icon:"🔥", color:"#FF9A5C", songs:SHONEN.map(([a,s,y,x])=>({a,s,y,x}))},
   {id:"hebrew", name:"עברית", range:"שירים בעברית מכל הזמנים", icon:"🇮🇱", color:"#7FE0F2", songs:HEBREW.map(([a,s,y,x])=>({a,s,y,x}))},
